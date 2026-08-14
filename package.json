@@ -7,7 +7,10 @@
     "packages/*"
   ],
   "main": "dist-electron/main.js",
-  "author": "Cortex",
+  "author": {
+  "name": "ominatsune",
+  "email": "ominatsune@proton.me"
+  }
   "license": "MIT",
   "scripts": {
     "dev": "env -u ELECTRON_RUN_AS_NODE vite",
