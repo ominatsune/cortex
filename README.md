@@ -6,6 +6,10 @@
 [![GitHub Issues](https://img.shields.io/github/issues/ominatsune/cortex)](https://github.com/ominatsune/cortex/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/ominatsune/cortex)](https://github.com/ominatsune/cortex/commits/master)
 
+<div align="center">
+  <img src="assets/cortex-logo-source.png" alt="Cortex" width="500">
+<p>
+
 An open-source cross-platform note-taking and personal knowledge management app for macOS, Linux, and Windows.
 
 Cortex provides Markdown notes, attachments, tags, contacts, diary entries, a built-in calendar, and PDF export — with data stored in a local vault.
