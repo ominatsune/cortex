@@ -1,7 +1,5 @@
 <div align="center">
 
-# **Cortex**
-
 <img src="assets/cortex-logo-source.png" alt="Cortex" width="500">
 
 <p>
@@ -17,7 +15,8 @@
 </div>
 
 ---
-<p>
+
+# Cortex
 
 An open-source cross-platform note-taking and personal knowledge management app for macOS, Linux, and Windows.
 
