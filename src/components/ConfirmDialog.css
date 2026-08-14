@@ -1,0 +1,23 @@
+.confirm-dialog {
+  max-width: 400px;
+}
+
+.confirm-message {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.1);
+}

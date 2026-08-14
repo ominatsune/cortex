@@ -1,0 +1,134 @@
+.vault-setup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bg-primary);
+  padding: 24px;
+}
+
+.vault-setup-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.vault-setup-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.vault-setup-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.vault-options {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.vault-option-group h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.vault-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: left;
+  transition: all 0.12s;
+}
+
+.vault-option-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.vault-option-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vault-cloud-step h2,
+.vault-name-step h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.vault-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.vault-back-btn:hover {
+  color: var(--text-primary);
+}
+
+.vault-cloud-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vault-parent-path {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.vault-name-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  margin-bottom: 16px;
+}
+
+.vault-name-input:focus {
+  border-color: var(--accent);
+}
+
+.vault-create-btn {
+  width: 100%;
+}
+
+.vault-loading {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 16px;
+}

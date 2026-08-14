@@ -1,0 +1,89 @@
+.center-body .preview-content .preview-quote-block {
+  margin: 0 0 0.85em;
+  color: var(--text-secondary);
+}
+
+.center-body .preview-content .preview-quote-line {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.85em;
+  margin: 0 0 0.25em;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.center-body .preview-content .preview-quote-line::before {
+  content: '';
+  flex: 0 0 3px;
+  width: 3px;
+  align-self: stretch;
+  min-height: 1.65em;
+  background: var(--ctp-yellow);
+}
+
+.center-body .preview-content .preview-quote-line-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.center-body .preview-content .preview-quote-line:last-child {
+  margin-bottom: 0;
+}
+
+.center-body .preview-content .wiki-link,
+.center-body .preview-content a {
+  color: var(--ctp-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.center-body .preview-content .wiki-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.center-body .preview-content .wiki-link:hover,
+.center-body .preview-content a:hover {
+  color: var(--ctp-sapphire);
+}
+
+.center-body .preview-content .preview-quote-line .wiki-link,
+.center-body .preview-content .preview-quote-line a {
+  color: var(--ctp-blue);
+}
+
+.center-body .preview-content .preview-quote-line .wiki-link:hover,
+.center-body .preview-content .preview-quote-line a:hover {
+  color: var(--ctp-sapphire);
+}
+
+.center-body .preview-content .preview-code-block {
+  margin: 0 0 0.85em;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.center-body .preview-content .preview-code-line {
+  background: var(--bg-tertiary);
+  padding-left: 14px;
+  padding-right: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.center-body .preview-content .preview-code-line:first-child {
+  padding-top: 10px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.center-body .preview-content .preview-code-line:last-child {
+  padding-bottom: 10px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}

@@ -1,0 +1,53 @@
+.wiki-link-popup {
+  position: fixed;
+  z-index: 200;
+  min-width: 240px;
+  max-width: 480px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--canvas-shadow);
+  padding: 4px;
+}
+
+.wiki-link-popup-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.wiki-link-popup-label {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.wiki-link-popup-item:hover,
+.wiki-link-popup-item.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.wiki-link-popup-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.wiki-link-popup-icon.create {
+  color: var(--accent);
+}
+
+.wiki-link-popup-empty {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}

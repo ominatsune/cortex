@@ -1,0 +1,117 @@
+.tags-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 80px;
+}
+
+.tags-popup {
+  width: 320px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  padding: 14px;
+}
+
+.tags-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.tags-popup-close {
+  margin-left: auto;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.tags-popup-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tags-popup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+  margin-bottom: 10px;
+}
+
+.tags-popup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tags-popup-chip button {
+  display: flex;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.tags-popup-chip button:hover {
+  opacity: 1;
+}
+
+.tags-popup-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.tags-popup-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tags-popup-input-row input {
+  flex: 1;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  color: var(--text-primary);
+}
+
+.tags-popup-input-row input:focus {
+  border-color: var(--accent);
+}
+
+.tags-popup-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.tags-popup-add:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tags-popup-save {
+  width: 100%;
+  padding: 8px;
+  font-size: 13px;
+}
