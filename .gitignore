@@ -40,3 +40,6 @@ mobile/.expo-shared/
 # OS / editor
 *.swp
 *.swo
+
+# kiro
+.kiro/
