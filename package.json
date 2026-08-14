@@ -16,8 +16,8 @@
     "dev": "env -u ELECTRON_RUN_AS_NODE vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "package": "npm run icons:mac && npm run build && electron-builder",
-    "package:mac": "npm run icons:mac && npm run build && electron-builder --mac",
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
     "package:win": "npm run build && electron-builder --win",
     "package:linux": "npm run build && electron-builder --linux",
     "icons": "bash scripts/generate-icons.sh",
@@ -56,9 +56,9 @@
   "build": {
     "appId": "com.cortex.app",
     "productName": "Cortex",
-    "icon": "build/icon.png",
+    "icon": "assets/icon.png",
     "mac": {
-      "icon": "build/macos-app-icon.png",
+      "icon": "assets/appicon/Icon-macOS-Default-1024x1024@1x.png",
       "category": "public.app-category.productivity",
       "target": [
         "dmg"
