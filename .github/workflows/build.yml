@@ -37,7 +37,10 @@ jobs:
 
       - name: Install macOS build dependencies
         if: matrix.platform == 'mac'
-        run: brew install ffmpeg    
+        run: |
+          brew update
+          brew install ffmpeg
+          ffmpeg -version
           
       - name: Install dependencies
         run: npm ci
