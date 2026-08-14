@@ -42,7 +42,7 @@ jobs:
         run: npm run package:${{ matrix.platform }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cortex-${{ matrix.platform }}
           path: |
@@ -61,19 +61,19 @@ jobs:
 
     steps:
       - name: Download Linux build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: cortex-linux
           path: release
 
       - name: Download Windows build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: cortex-win
           path: release
 
       - name: Download macOS build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: cortex-mac
           path: release
