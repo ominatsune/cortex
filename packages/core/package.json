@@ -1,0 +1,12 @@
+{
+  "name": "@cortex/core",
+  "version": "0.1.0",
+  "description": "Shared types and utilities for Cortex desktop and mobile",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT"
+}

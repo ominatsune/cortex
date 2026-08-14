@@ -1,0 +1,51 @@
+.mode-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.mode-toggle-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 4px 12px;
+  min-width: 52px;
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.mode-toggle-segment:hover:not(.active) {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.mode-toggle-segment.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.mode-toggle-main {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+
+.mode-toggle-sub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  line-height: 1.2;
+}
+
+.mode-toggle-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}

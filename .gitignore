@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+mobile/node_modules/
+
+# Build output
+dist/
+dist-electron/
+build/
+release/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Electron / local generated files
+*.local
+
+# Expo / React Native
+mobile/.expo/
+mobile/.expo-shared/
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# OS / editor
+*.swp
+*.swo
+
+# kiro
+.kiro/

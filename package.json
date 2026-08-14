@@ -1,0 +1,84 @@
+{
+  "name": "cortex",
+  "version": "0.0.1",
+  "description": "Open-source cross-platform note-taking app with calendar, diary, contacts, and tags",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "main": "dist-electron/main.js",
+  "author": {
+  "name": "ominatsune",
+  "email": "ominatsune@proton.me"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "env -u ELECTRON_RUN_AS_NODE vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux",
+    "icons": "bash scripts/generate-icons.sh",
+    "icons:mac": "bash scripts/generate-mac-icon.sh",
+    "postinstall": "node scripts/postinstall.mjs"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/lang-markdown": "^6.3.3",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.7",
+    "@cortex/core": "*",
+    "@uiw/react-codemirror": "^4.23.12",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^36.2.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "build": {
+    "appId": "com.cortex.app",
+    "productName": "Cortex",
+    "publish": null,
+    "icon": "assets/icon.png",
+    "mac": {
+      "icon": "assets/appicon/Icon-macOS-Default-1024x1024@1x.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ]
+  }
+}
