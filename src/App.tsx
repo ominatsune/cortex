@@ -156,6 +156,18 @@ export default function App() {
     await openNoteAtPath(path, name, opts)
   }, [openNoteAtPath])
 
+  const handleOpenContactFromMention = useCallback((contact: Contact) => {
+    const currentPath = selectedPathRef.current
+    setNavHistory((history) => (currentPath ? [...history, currentPath] : history))
+    setZone('contacts')
+    setSelectedContact(contact)
+    setSelectedPath(null)
+    setSelectedName(null)
+    setFocusedCalendarEvent(null)
+    setIsNewNote(false)
+    setOpenNoteContent('')
+  }, [])
+
   const handleNavBack = useCallback(() => {
     setNavHistory((history) => {
       if (history.length === 0) return history
@@ -298,6 +310,7 @@ export default function App() {
             onOpenNote={handleSelectPath}
             onNoteSaved={handleNoteSaved}
             onContactUpdated={setSelectedContact}
+            onOpenContact={handleOpenContactFromMention}
             onRefresh={refresh}
             onError={handleError}
             vaultName={vaultStatus.name}
