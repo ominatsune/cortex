@@ -27,6 +27,11 @@ Cortex provides Markdown notes, attachments, tags, contacts, diary entries, a bu
 >
 > The application is actively being developed and may contain bugs, incomplete features, or breaking changes. **Use Cortex at your own risk and keep regular backups of your vault and important data.**
 
+<div align="center">
+<img src="assets/screenshots/screenshot1.png" alt="Cortex" width="500">
+</div>
+
+---
 ## Features
 
 - **Three-panel layout** — Browser / app zones / tag legend on the left, notes in the center, and calendar / tags / links on the right
