@@ -212,7 +212,19 @@ function applyMacFolderIcon(vaultRoot: string, iconPath: string): void {
   `
 
   execFile('osascript', ['-l', 'JavaScript', '-e', script, iconPath, vaultRoot], (error) => {
-    if (error) console.warn('Failed to set vault folder icon:', error.message)
+    if (error) {
+      console.warn('Failed to set vault folder icon:', error.message)
+      return
+    }
+    // Setting a custom folder icon creates a companion "Icon\r" file inside
+    // the folder to hold the icon data — normal macOS behavior, but it's
+    // meant to stay invisible. Finder usually hides it itself when the icon
+    // is set through its own UI; doing it via NSWorkspace doesn't, so hide
+    // it explicitly or it shows up as a stray "Icon?" file.
+    const iconFilePath = path.join(vaultRoot, 'Icon\r')
+    execFile('chflags', ['hidden', iconFilePath], (hideError) => {
+      if (hideError) console.warn('Failed to hide Icon\\r file:', hideError.message)
+    })
   })
 }
 
