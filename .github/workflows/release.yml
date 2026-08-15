@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   tag:
@@ -17,7 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Tag if version changed
+      - name: Tag and dispatch build if version changed
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG="v$VERSION"
@@ -31,4 +34,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "$TAG"
           git push origin "$TAG"
-          echo "Pushed tag $TAG — this will trigger the build & release workflow."
+
+          # A tag pushed with the default GITHUB_TOKEN does NOT trigger other
+          # workflows (GitHub's anti-recursion safeguard), so build.yml's
+          # "push: tags: v*" trigger would never fire on its own. Dispatch it
+          # explicitly instead — it already supports workflow_dispatch.
+          gh workflow run build.yml --ref "$TAG"
+          echo "Pushed tag $TAG and dispatched the build & release workflow."
