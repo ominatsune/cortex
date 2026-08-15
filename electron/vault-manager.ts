@@ -141,8 +141,8 @@ async function writeVaultMarker(settingsDir: string, vaultName: string): Promise
 
 function resolveBundledIconPath(): string | null {
   const candidates = [
-    path.join(__dirname, '../dist/cortex-icon.png'),
-    path.join(__dirname, '../public/cortex-icon.png'),
+    path.join(__dirname, '../dist/macos-app-icon-dark.png'),
+    path.join(__dirname, '../public/macos-app-icon-dark.png'),
   ]
   return candidates.find((candidate) => existsSync(candidate)) ?? null
 }
