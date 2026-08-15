@@ -81,6 +81,18 @@
   color: var(--ctp-sapphire);
 }
 
+.cm-lp-contact {
+  color: var(--ctp-flamingo);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cm-lp-contact:hover {
+  color: var(--ctp-pink);
+}
+
 /* Blockquote — line-level border so every quoted row aligns */
 .cm-line.cm-lp-quote-line {
   border-left: 3px solid var(--ctp-yellow);

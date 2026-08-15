@@ -9,7 +9,7 @@ export function setApplicationMenu() {
     void dialog.showMessageBox({
       type: 'info',
       title: 'About Cortex',
-      message: 'Cortex v0.0.1',
+      message: `Cortex v${app.getVersion()}`,
       detail: 'Open-source cross-platform note-taking app with calendar, diary, contacts, and tags.',
       buttons: ['OK'],
     })

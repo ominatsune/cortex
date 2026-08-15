@@ -4,7 +4,10 @@ function parseLegacyFrontmatterTags(raw: string): { body: string; tags: string[]
   const match = raw.match(/^---\n([\s\S]*?)\n---\n?/)
   if (!match) return { body: raw, tags: [] }
   const fm = match[1]
-  const tagsLine = fm.match(/^tags:\s*(.+)$/m)
+  // [ \t]* (not \s*) — \s matches newlines too, which let an empty
+  // "tags:" line swallow the following frontmatter line (e.g. "created:
+  // ...") as if it were the tag value.
+  const tagsLine = fm.match(/^tags:[ \t]*(.+)$/m)
   const tags = tagsLine
     ? tagsLine[1].split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
     : []

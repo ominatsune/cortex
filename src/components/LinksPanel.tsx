@@ -42,7 +42,11 @@ export default function LinksPanel({
 
     setLoading(true)
     try {
-      const files = await window.cortex.storage.listFiles('notes')
+      const [notesFiles, diaryFiles] = await Promise.all([
+        window.cortex.storage.listFiles('notes'),
+        window.cortex.storage.listFiles('diary'),
+      ])
+      const files = [...notesFiles, ...diaryFiles]
       const titleIndex = new Map<string, { path: string; title: string }>()
 
       for (const file of files) {

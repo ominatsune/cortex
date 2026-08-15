@@ -11,6 +11,7 @@ interface ContactsListProps {
   refreshKey: number
   onRefresh: () => void
   onError: (msg: string) => void
+  activeTag?: string | null
 }
 
 function contactCompanyLabel(company: string | undefined): string | null {
@@ -26,6 +27,7 @@ export default function ContactsList({
   refreshKey,
   onRefresh,
   onError,
+  activeTag,
 }: ContactsListProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [pendingDelete, setPendingDelete] = useState<Contact | null>(null)
@@ -74,6 +76,8 @@ export default function ContactsList({
     }
   }
 
+  const visibleContacts = activeTag ? contacts.filter((c) => c.tags.includes(activeTag)) : contacts
+
   return (
     <div className="contacts-list">
       <div className="contacts-actions">
@@ -82,7 +86,7 @@ export default function ContactsList({
         </button>
       </div>
       <div className="contacts-items">
-        {contacts.map((c) => {
+        {visibleContacts.map((c) => {
           const company = contactCompanyLabel(c.company)
           return (
           <button
@@ -101,8 +105,10 @@ export default function ContactsList({
           </button>
           )
         })}
-        {contacts.length === 0 && (
-          <div className="file-browser-empty">No contacts yet</div>
+        {visibleContacts.length === 0 && (
+          <div className="file-browser-empty">
+            {activeTag ? `No contacts tagged #${activeTag}` : 'No contacts yet'}
+          </div>
         )}
       </div>
 

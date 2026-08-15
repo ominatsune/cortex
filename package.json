@@ -1,6 +1,6 @@
 {
   "name": "cortex",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Open-source cross-platform note-taking app with calendar, diary, contacts, and tags",
   "private": true,
   "workspaces": [
@@ -8,8 +8,8 @@
   ],
   "main": "dist-electron/main.js",
   "author": {
-  "name": "ominatsune",
-  "email": "ominatsune@proton.me"
+    "name": "ominatsune",
+    "email": "ominatsune@proton.me"
   },
   "license": "MIT",
   "scripts": {
@@ -22,7 +22,8 @@
     "package:linux": "npm run build && electron-builder --linux",
     "icons": "bash scripts/generate-icons.sh",
     "icons:mac": "bash scripts/generate-mac-icon.sh",
-    "postinstall": "node scripts/postinstall.mjs"
+    "postinstall": "node scripts/postinstall.mjs",
+    "release": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",

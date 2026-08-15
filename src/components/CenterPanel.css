@@ -325,6 +325,18 @@
   color: var(--text-muted);
 }
 
+.contact-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact-tags-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .contact-view-notes {
   border-top: 1px solid var(--border);
   padding-top: 20px;

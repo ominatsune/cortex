@@ -1,4 +1,4 @@
-import { RangeSetBuilder } from '@codemirror/state'
+import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
 import {
   Decoration,
   DecorationSet,
@@ -9,6 +9,20 @@ import {
 } from '@codemirror/view'
 import { taskLineIndentClass } from '../utils/note-tasks'
 import { computeLazyQuoteLineNumbers } from '../utils/markdown-quotes'
+import { findContactMentions } from '../utils/contact-mentions'
+
+/** Dispatch to update the set of known contact names used to highlight `@mentions`. */
+export const setContactNamesEffect = StateEffect.define<string[]>()
+
+export const contactNamesField = StateField.define<string[]>({
+  create: () => [],
+  update(value, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setContactNamesEffect)) return effect.value
+    }
+    return value
+  },
+})
 
 interface FenceBlock {
   openFrom: number
@@ -280,7 +294,8 @@ function decorateLine(
   lineEnd: number,
   cursor: number,
   skipRanges: [number, number][],
-  lazyQuote: boolean
+  lazyQuote: boolean,
+  contactNames: string[]
 ) {
   function inSkipped(from: number, to: number) {
     return skipRanges.some(([s, e]) => from < e && to > s)
@@ -469,6 +484,15 @@ function decorateLine(
     }
   }
 
+  if (contactNames.length > 0) {
+    for (const mention of findContactMentions(local, contactNames)) {
+      const { start, end } = mention
+      if (!free(start, end)) continue
+      markUsed(start, end)
+      addPreview(queue, lineFrom + start, lineFrom + end, 'cm-lp-contact')
+    }
+  }
+
   const wrapPatterns: {
     re: RegExp
     openLen: number
@@ -511,6 +535,7 @@ function buildDecorations(view: EditorView): DecorationSet {
   const queue = new DecoQueue()
   const cursor = view.state.selection.main.head
   const doc = view.state.doc
+  const contactNames = view.state.field(contactNamesField, false) ?? []
 
   const fenceBlocks = findFenceBlocks(doc)
   const skipRanges: [number, number][] = fenceBlocks.map((b) => [
@@ -537,7 +562,8 @@ function buildDecorations(view: EditorView): DecorationSet {
         line.to,
         cursor,
         skipRanges,
-        lazyQuoteLines.has(line.number)
+        lazyQuoteLines.has(line.number),
+        contactNames
       )
       pos = line.to + 1
     }
@@ -554,16 +580,22 @@ class LivePreviewPlugin {
   }
 
   update(update: ViewUpdate) {
-    if (update.docChanged || update.selectionSet || update.viewportChanged) {
+    const contactNamesChanged = update.transactions.some((tr) =>
+      tr.effects.some((effect) => effect.is(setContactNamesEffect))
+    )
+    if (update.docChanged || update.selectionSet || update.viewportChanged || contactNamesChanged) {
       this.decorations = buildDecorations(update.view)
     }
   }
 }
 
 export function livePreviewExtension() {
-  return ViewPlugin.fromClass(LivePreviewPlugin, {
-    decorations: (v) => v.decorations,
-  })
+  return [
+    contactNamesField,
+    ViewPlugin.fromClass(LivePreviewPlugin, {
+      decorations: (v) => v.decorations,
+    }),
+  ]
 }
 
 function toggleTaskCheckbox(view: EditorView, lineFrom: number): boolean {
@@ -597,6 +629,25 @@ export function wikiLinkClickExtension(onWikiLinkClick: (title: string) => void)
       const title = wikiEl.textContent?.trim()
       if (title) {
         onWikiLinkClick(title)
+        view.focus()
+      }
+      return true
+    },
+  })
+}
+
+export function contactMentionClickExtension(onContactClick: (name: string) => void) {
+  return EditorView.domEventHandlers({
+    mousedown(event, view) {
+      if (!(event.target instanceof HTMLElement)) return false
+
+      const mentionEl = event.target.closest('.cm-lp-contact')
+      if (!mentionEl) return false
+      event.preventDefault()
+      const text = mentionEl.textContent?.trim() ?? ''
+      const name = text.startsWith('@') ? text.slice(1).trim() : text
+      if (name) {
+        onContactClick(name)
         view.focus()
       }
       return true

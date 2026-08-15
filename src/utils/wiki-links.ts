@@ -17,15 +17,32 @@ export function wikiLinkTitleMatches(
   )
 }
 
+function diaryDateFromEntryPath(relativePath: string): string | null {
+  const match = relativePath.replace(/\\/g, '/').match(/^diary\/.*\/(\d{4}-\d{2}-\d{2})\.md$/)
+  return match ? match[1] : null
+}
+
 export function filterWikiLinkFiles(
   files: { name: string; path: string }[],
   query: string
 ): { name: string; path: string }[] {
   const q = query.trim().toLowerCase()
-  if (!q) return files
-  return files.filter((f) => {
-    const pathLabel = formatNotePathLabel(f.path).toLowerCase()
-    return f.name.toLowerCase().includes(q) || pathLabel.includes(q)
+  const matched = !q
+    ? files
+    : files.filter((f) => {
+        const pathLabel = formatNotePathLabel(f.path).toLowerCase()
+        return f.name.toLowerCase().includes(q) || pathLabel.includes(q)
+      })
+
+  // Diary entries sort to the top, newest first — typing [[2026... should
+  // surface recent diary dates before unrelated notes.
+  return [...matched].sort((a, b) => {
+    const dateA = diaryDateFromEntryPath(a.path)
+    const dateB = diaryDateFromEntryPath(b.path)
+    if (dateA && dateB) return dateB.localeCompare(dateA)
+    if (dateA && !dateB) return -1
+    if (!dateA && dateB) return 1
+    return 0
   })
 }
 

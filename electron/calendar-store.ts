@@ -16,6 +16,12 @@ function eventFilePath(id: string, title: string): string {
   return path.join(calendarDir(), `${sanitizeFileName(title)}-${id.slice(0, 8)}.md`)
 }
 
+function parseCsv(value: string | undefined): string[] | undefined {
+  if (!value) return undefined
+  const items = value.split(',').map((v) => v.trim()).filter(Boolean)
+  return items.length > 0 ? items : undefined
+}
+
 function parseEventFile(raw: string): StoredCalendarEvent | null {
   const stripped = stripFileTypeLine(raw)
   const { meta, body } = parseFrontmatter(stripped)
@@ -29,6 +35,9 @@ function parseEventFile(raw: string): StoredCalendarEvent | null {
     location: meta.location || undefined,
     notes: body.trim() || undefined,
     color: meta.color || undefined,
+    contactIds: parseCsv(meta.contactIds),
+    notePaths: parseCsv(meta.notePaths),
+    diaryDates: parseCsv(meta.diaryDates),
   }
 }
 
@@ -46,6 +55,9 @@ async function writeEventFile(event: StoredCalendarEvent, existingPath?: string)
         allDay: event.allDay,
         location: event.location,
         color: event.color,
+        contactIds: event.contactIds,
+        notePaths: event.notePaths,
+        diaryDates: event.diaryDates,
       },
       event.notes ?? ''
     )

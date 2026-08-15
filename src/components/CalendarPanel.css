@@ -150,6 +150,27 @@
   opacity: 1;
 }
 
+.cal-diary-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.cal-diary-add:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
 .cal-day-dots {
   display: flex;
   gap: 2px;
@@ -200,6 +221,18 @@
   border-radius: var(--radius);
   margin-bottom: 6px;
   border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.cal-event:hover {
+  border-color: var(--border);
+}
+
+.cal-event-link-count {
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 3px;
+  font-weight: 500;
 }
 
 .cal-event-focused {

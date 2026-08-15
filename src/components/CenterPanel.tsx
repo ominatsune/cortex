@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef, useLayoutEffect, type MutableRefObject } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect, type MutableRefObject } from 'react'
 import { FileDown, Paperclip, Check, Hash, Pencil, X, ArrowLeft } from 'lucide-react'
 import MarkdownEditor, { type MarkdownEditorHandle } from './MarkdownEditor'
 import MarkdownPreview from './MarkdownPreview'
 import MarkdownToolbar from './MarkdownToolbar'
 import ModeToggle from './ModeToggle'
 import TagsPopup from './TagsPopup'
-import { UNTITLED_CONTACT, UNTITLED_NOTE, diaryDateFromPath, isDiaryPath } from '@cortex/core'
+import { UNTITLED_CONTACT, UNTITLED_NOTE, diaryDateFromPath, isDiaryPath, isValidDiaryDate } from '@cortex/core'
 import { buildPdfHtml } from '../utils/pdf'
 import { attachmentMarkdown } from '../utils/markdown'
 import NotePathHeader from './NotePathHeader'
@@ -14,6 +14,7 @@ import { extractNoteTitle } from '../utils/note-meta'
 import { stripTagsBlock, withTagsBlock } from '../utils/note-tags'
 import { pathDir } from './FileBrowser'
 import { resolveWikiLinkPath } from '../utils/wiki-links'
+import { resolveContactMentionName } from '../utils/contact-mentions'
 import type { AppZone, EditorMode, Contact } from '../types'
 import type { MarkdownAction } from '../utils/markdown'
 import './CenterPanel.css'
@@ -53,6 +54,7 @@ interface CenterPanelProps {
   onOpenNote?: (path: string, name: string, opts?: { isNew?: boolean; fromLink?: boolean }) => void
   onNoteSaved?: () => void
   onContactUpdated?: (contact: Contact) => void
+  onOpenContact?: (contact: Contact) => void
   onRefresh: () => void
   onError: (msg: string) => void
   vaultName: string | null
@@ -76,6 +78,7 @@ export default function CenterPanel({
   onOpenNote,
   onNoteSaved,
   onContactUpdated,
+  onOpenContact,
   onRefresh,
   onError,
   vaultName,
@@ -121,15 +124,31 @@ export default function CenterPanel({
   const prevSelectedPathRef = useRef<string | null>(null)
   const preserveModeOnPathChangeRef = useRef(false)
   const [editorSessionKey, setEditorSessionKey] = useState<string | null>(null)
+  const [pageContacts, setPageContacts] = useState<Contact[]>([])
+  const pageContactsRef = useRef<Contact[]>([])
 
   selectedPathRef.current = selectedPath
   contentRef.current = content
   noteTagsRef.current = noteTags
+  pageContactsRef.current = pageContacts
 
   useEffect(() => {
     savingPathRef.current = selectedPath
     selectedPathRef.current = selectedPath
   }, [selectedPath])
+
+  useEffect(() => {
+    if (zone === 'contacts') return
+    let cancelled = false
+    void window.cortex.contacts.list().then((data) => {
+      if (!cancelled) setPageContacts(data)
+    }).catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [zone, selectedPath])
+
+  const contactNames = useMemo(() => pageContacts.map((c) => c.name), [pageContacts])
 
   const reportSaveError = useCallback(
     (err: unknown) => {
@@ -457,6 +476,16 @@ export default function CenterPanel({
         }
         await saveNoteRef.current(contentRef.current, noteTagsRef.current)
 
+        // [[YYYY-MM-DD]] always refers to a diary entry — resolve/create it
+        // directly rather than treating it as a plain note title.
+        const trimmedTitle = title.trim()
+        if (isValidDiaryDate(trimmedTitle)) {
+          const diaryPath = await window.cortex.storage.openDiaryEntry(trimmedTitle)
+          onRefresh()
+          onOpenNote?.(diaryPath, trimmedTitle, { isNew: false, fromLink: true })
+          return
+        }
+
         // Search notes and diary for the link target
         const [notesFiles, diaryFiles] = await Promise.all([
           window.cortex.storage.listFiles('notes'),
@@ -489,10 +518,37 @@ export default function CenterPanel({
     [selectedPath, onOpenNote, onRefresh, onError]
   )
 
+  const handleContactMentionClick = useCallback(
+    async (name: string) => {
+      const match = resolveContactMentionName(name, pageContactsRef.current)
+      if (!match) return
+      try {
+        if (saveTimer.current) {
+          clearTimeout(saveTimer.current)
+          saveTimer.current = null
+        }
+        if (selectedPathRef.current) {
+          await saveNoteRef.current(contentRef.current, noteTagsRef.current)
+        }
+        onOpenContact?.(match)
+      } catch {
+        onError('Failed to open contact')
+      }
+    },
+    [onOpenContact, onError]
+  )
+
   const handleWikiLinkEnsure = useCallback(
     async (title: string) => {
       if (!selectedPath) return
       try {
+        const trimmedTitle = title.trim()
+        if (isValidDiaryDate(trimmedTitle)) {
+          await window.cortex.storage.openDiaryEntry(trimmedTitle)
+          onRefresh()
+          return
+        }
+
         const [notesFiles, diaryFiles] = await Promise.all([
           window.cortex.storage.listFiles('notes'),
           window.cortex.storage.listFiles('diary'),
@@ -561,8 +617,35 @@ export default function CenterPanel({
   }
 
   const handleApplyTags = (tags: string[]) => {
-    scheduleSave(contentRef.current, tags)
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current)
+      saveTimer.current = null
+    }
+    noteTagsRef.current = tags
+    setNoteTagsState(tags)
     setShowTagsPopup(false)
+    // Save immediately (skip the debounce) and refresh once it lands, so
+    // the tag legend doesn't keep showing stale tags for the file.
+    void saveNoteRef.current(contentRef.current, tags)
+      .then(() => onRefresh())
+      .catch(reportSaveError)
+  }
+
+  const contactTagList = contactForm.tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+
+  const handleApplyContactTags = (tags: string[]) => {
+    if (contactSaveTimer.current) {
+      clearTimeout(contactSaveTimer.current)
+      contactSaveTimer.current = null
+    }
+    const next = { ...contactForm, tags: tags.join(', ') }
+    setContactForm(next)
+    setShowTagsPopup(false)
+    // saveContact refreshes the tag legend internally once the write lands.
+    void saveContact(next)
   }
 
   if (zone === 'contacts') {
@@ -580,7 +663,15 @@ export default function CenterPanel({
     return (
       <main className="center-panel">
         <div className="center-header">
-          <span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>
+          <div className="center-header-left">
+            <span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>
+            {canGoBack && onNavBack && (
+              <button type="button" className="center-back-btn" onClick={onNavBack}>
+                <ArrowLeft size={14} />
+                Back
+              </button>
+            )}
+          </div>
           <div className="center-actions">
             {onCloseFile && (
               <button className="toolbar-btn" onClick={onCloseFile} title="Close file">
@@ -640,10 +731,14 @@ export default function CenterPanel({
                     <span>{contactForm.phone}</span>
                   </div>
                 )}
-                {contactForm.tags && (
+                {contactTagList.length > 0 && (
                   <div className="contact-view-row">
                     <span className="contact-view-label">Tags</span>
-                    <span>{contactForm.tags}</span>
+                    <span className="contact-tags-row">
+                      {contactTagList.map((tag) => (
+                        <span key={tag} className="note-tag-chip">#{tag}</span>
+                      ))}
+                    </span>
                   </div>
                 )}
               </div>
@@ -681,8 +776,19 @@ export default function CenterPanel({
                 <input value={contactForm.company} onChange={(e) => updateContactForm({ company: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Tags (comma-separated)</label>
-                <input value={contactForm.tags} onChange={(e) => updateContactForm({ tags: e.target.value })} />
+                <label>Tags</label>
+                <div className="contact-tags-row">
+                  {contactTagList.length > 0 ? (
+                    contactTagList.map((tag) => (
+                      <span key={tag} className="note-tag-chip">#{tag}</span>
+                    ))
+                  ) : (
+                    <span className="contact-tags-empty">No tags yet</span>
+                  )}
+                  <button type="button" className="toolbar-btn" onClick={() => setShowTagsPopup(true)}>
+                    <Hash size={13} /> Manage tags
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>Notes</label>
@@ -690,6 +796,14 @@ export default function CenterPanel({
               </div>
             </div>
           </div>
+        )}
+
+        {showTagsPopup && (
+          <TagsPopup
+            tags={contactTagList}
+            onApply={handleApplyContactTags}
+            onClose={() => setShowTagsPopup(false)}
+          />
         )}
       </main>
     )
@@ -768,6 +882,7 @@ export default function CenterPanel({
                   onActiveActionsChange={setActiveFormatActions}
                   onWikiLinkClick={handleWikiLinkNavigate}
                   onWikiLinkEnsure={handleWikiLinkEnsure}
+                  onContactMentionClick={handleContactMentionClick}
                   wikiLinkEnabled
                 />
               )}
@@ -781,6 +896,8 @@ export default function CenterPanel({
                 tags={noteTags}
                 onWikiLinkClick={handleWikiLinkNavigate}
                 onTaskToggle={scheduleSave}
+                contactNames={contactNames}
+                onContactClick={handleContactMentionClick}
               />
             </div>
           </div>

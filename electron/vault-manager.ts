@@ -1,8 +1,16 @@
 import { app, dialog } from 'electron'
+import { execFile } from 'child_process'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { VAULT_FOLDERS, type CloudProvider } from '@cortex/core'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const VAULT_MARKER_FILE = 'vault.cortex'
+const VAULT_FOLDER_ICON_FILE = 'folder-icon.png'
 
 const CONFIG_FILE = 'cortex-config.json'
 
@@ -48,6 +56,10 @@ export async function initVault(): Promise<string | null> {
     activeVaultPath = null
     return null
   }
+
+  // Reinstate any minimum folders (notes/, diary/, etc.), the vault marker,
+  // and the folder icon if they were deleted externally since last launch.
+  await ensureVaultFolders(config.vaultPath)
 
   activeVaultPath = config.vaultPath
   return activeVaultPath
@@ -106,6 +118,114 @@ export async function createVaultStructure(vaultRoot: string): Promise<void> {
       'utf-8'
     )
   }
+
+  await writeVaultMarker(settingsDir, path.basename(vaultRoot))
+  const iconPath = await writeVaultFolderIcon(settingsDir)
+  // Fire-and-forget: never let icon-setting slow down or fail vault setup.
+  if (iconPath) applyMacFolderIcon(vaultRoot, iconPath)
+}
+
+/** Marks a directory as a Cortex vault. Written once — never overwritten, so
+ *  the original creation date survives re-opening the vault later. */
+async function writeVaultMarker(settingsDir: string, vaultName: string): Promise<void> {
+  const markerPath = path.join(settingsDir, VAULT_MARKER_FILE)
+  try {
+    await fs.access(markerPath)
+    return
+  } catch {
+    const creationDate = new Date().toISOString().slice(0, 10)
+    const contents = `cortex.vault {\n    vault.name = '${vaultName}',\n    creation.date = '${creationDate}',\n}\n`
+    await fs.writeFile(markerPath, contents, 'utf-8')
+  }
+}
+
+function resolveBundledIconPath(): string | null {
+  const candidates = [
+    path.join(__dirname, '../dist/cortex-icon.png'),
+    path.join(__dirname, '../public/cortex-icon.png'),
+  ]
+  return candidates.find((candidate) => existsSync(candidate)) ?? null
+}
+
+/** Drops a copy of the app icon into the vault's settings folder — the
+ *  source used both as a reference and (on macOS) as the vault's actual
+ *  Finder folder icon. Written once, like the marker file. */
+async function writeVaultFolderIcon(settingsDir: string): Promise<string | null> {
+  const iconPath = path.join(settingsDir, VAULT_FOLDER_ICON_FILE)
+  try {
+    await fs.access(iconPath)
+    return iconPath
+  } catch {
+    const source = resolveBundledIconPath()
+    if (!source) return null
+    await fs.copyFile(source, iconPath)
+    return iconPath
+  }
+}
+
+/** Sets `vaultRoot`'s Finder icon (macOS only) to the standard macOS folder
+ *  shape with the app icon badged in the center — the same look Obsidian
+ *  uses for its vault folders, not a full icon replacement. Best-effort and
+ *  non-blocking — never awaited by callers, and failures are swallowed. */
+function applyMacFolderIcon(vaultRoot: string, iconPath: string): void {
+  if (process.platform !== 'darwin') return
+
+  const script = `
+    ObjC.import('Cocoa');
+    function run(argv) {
+      const iconPath = argv[0];
+      const targetPath = argv[1];
+
+      const badge = $.NSImage.alloc.initWithContentsOfFile(iconPath);
+      const folder = $.NSImage.imageNamed('NSFolder');
+      if (!badge || !folder) return;
+
+      const canvasSize = $.NSMakeSize(1024, 1024);
+      const composite = $.NSImage.alloc.initWithSize(canvasSize);
+
+      composite.lockFocus;
+
+      const SourceOver = 2;
+      folder.drawInRectFromRectOperationFraction(
+        $.NSMakeRect(0, 0, canvasSize.width, canvasSize.height),
+        $.NSMakeRect(0, 0, folder.size.width, folder.size.height),
+        SourceOver,
+        1.0
+      );
+
+      // Badge the app icon centered in the folder body, a bit smaller than
+      // the folder itself and nudged down slightly to sit clear of the tab.
+      const badgeSize = canvasSize.width * 0.5;
+      const badgeX = (canvasSize.width - badgeSize) / 2;
+      const badgeY = (canvasSize.height - badgeSize) / 2 - canvasSize.height * 0.04;
+      badge.drawInRectFromRectOperationFraction(
+        $.NSMakeRect(badgeX, badgeY, badgeSize, badgeSize),
+        $.NSMakeRect(0, 0, badge.size.width, badge.size.height),
+        SourceOver,
+        1.0
+      );
+
+      composite.unlockFocus;
+
+      $.NSWorkspace.sharedWorkspace.setIconForFileOptions(composite, targetPath, 0);
+    }
+  `
+
+  execFile('osascript', ['-l', 'JavaScript', '-e', script, iconPath, vaultRoot], (error) => {
+    if (error) {
+      console.warn('Failed to set vault folder icon:', error.message)
+      return
+    }
+    // Setting a custom folder icon creates a companion "Icon\r" file inside
+    // the folder to hold the icon data — normal macOS behavior, but it's
+    // meant to stay invisible. Finder usually hides it itself when the icon
+    // is set through its own UI; doing it via NSWorkspace doesn't, so hide
+    // it explicitly or it shows up as a stray "Icon?" file.
+    const iconFilePath = path.join(vaultRoot, 'Icon\r')
+    execFile('chflags', ['hidden', iconFilePath], (hideError) => {
+      if (hideError) console.warn('Failed to hide Icon\\r file:', hideError.message)
+    })
+  })
 }
 
 export async function ensureVaultFolders(vaultRoot: string): Promise<void> {
