@@ -163,8 +163,9 @@ async function writeVaultFolderIcon(settingsDir: string): Promise<string | null>
   }
 }
 
-/** Sets `vaultRoot`'s Finder icon to `iconPath` (macOS only), the same way
- *  apps like Obsidian brand their vault folders. Best-effort and
+/** Sets `vaultRoot`'s Finder icon (macOS only) to the standard macOS folder
+ *  shape with the app icon badged in the center — the same look Obsidian
+ *  uses for its vault folders, not a full icon replacement. Best-effort and
  *  non-blocking — never awaited by callers, and failures are swallowed. */
 function applyMacFolderIcon(vaultRoot: string, iconPath: string): void {
   if (process.platform !== 'darwin') return
@@ -174,9 +175,39 @@ function applyMacFolderIcon(vaultRoot: string, iconPath: string): void {
     function run(argv) {
       const iconPath = argv[0];
       const targetPath = argv[1];
-      const image = $.NSImage.alloc.initWithContentsOfFile(iconPath);
-      if (!image) return;
-      $.NSWorkspace.sharedWorkspace.setIconForFileOptions(image, targetPath, 0);
+
+      const badge = $.NSImage.alloc.initWithContentsOfFile(iconPath);
+      const folder = $.NSImage.imageNamed('NSFolder');
+      if (!badge || !folder) return;
+
+      const canvasSize = $.NSMakeSize(1024, 1024);
+      const composite = $.NSImage.alloc.initWithSize(canvasSize);
+
+      composite.lockFocus;
+
+      const SourceOver = 2;
+      folder.drawInRectFromRectOperationFraction(
+        $.NSMakeRect(0, 0, canvasSize.width, canvasSize.height),
+        $.NSMakeRect(0, 0, folder.size.width, folder.size.height),
+        SourceOver,
+        1.0
+      );
+
+      // Badge the app icon centered in the folder body, a bit smaller than
+      // the folder itself and nudged down slightly to sit clear of the tab.
+      const badgeSize = canvasSize.width * 0.5;
+      const badgeX = (canvasSize.width - badgeSize) / 2;
+      const badgeY = (canvasSize.height - badgeSize) / 2 - canvasSize.height * 0.04;
+      badge.drawInRectFromRectOperationFraction(
+        $.NSMakeRect(badgeX, badgeY, badgeSize, badgeSize),
+        $.NSMakeRect(0, 0, badge.size.width, badge.size.height),
+        SourceOver,
+        1.0
+      );
+
+      composite.unlockFocus;
+
+      $.NSWorkspace.sharedWorkspace.setIconForFileOptions(composite, targetPath, 0);
     }
   `
 
