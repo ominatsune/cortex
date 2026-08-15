@@ -1,4 +1,5 @@
 import { app, dialog } from 'electron'
+import { execFile } from 'child_process'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import os from 'os'
@@ -55,6 +56,10 @@ export async function initVault(): Promise<string | null> {
     activeVaultPath = null
     return null
   }
+
+  // Reinstate any minimum folders (notes/, diary/, etc.), the vault marker,
+  // and the folder icon if they were deleted externally since last launch.
+  await ensureVaultFolders(config.vaultPath)
 
   activeVaultPath = config.vaultPath
   return activeVaultPath
@@ -115,7 +120,9 @@ export async function createVaultStructure(vaultRoot: string): Promise<void> {
   }
 
   await writeVaultMarker(settingsDir, path.basename(vaultRoot))
-  await writeVaultFolderIcon(settingsDir)
+  const iconPath = await writeVaultFolderIcon(settingsDir)
+  // Fire-and-forget: never let icon-setting slow down or fail vault setup.
+  if (iconPath) applyMacFolderIcon(vaultRoot, iconPath)
 }
 
 /** Marks a directory as a Cortex vault. Written once — never overwritten, so
@@ -134,23 +141,48 @@ async function writeVaultMarker(settingsDir: string, vaultName: string): Promise
 
 function resolveBundledIconPath(): string | null {
   const candidates = [
-    path.join(__dirname, '../dist/favicon-32.png'),
-    path.join(__dirname, '../public/favicon-32.png'),
+    path.join(__dirname, '../dist/cortex-icon.png'),
+    path.join(__dirname, '../public/cortex-icon.png'),
   ]
   return candidates.find((candidate) => existsSync(candidate)) ?? null
 }
 
-/** Drops a small copy of the app icon into the vault's settings folder,
- *  for use as the vault's folder icon. Written once, like the marker file. */
-async function writeVaultFolderIcon(settingsDir: string): Promise<void> {
+/** Drops a copy of the app icon into the vault's settings folder — the
+ *  source used both as a reference and (on macOS) as the vault's actual
+ *  Finder folder icon. Written once, like the marker file. */
+async function writeVaultFolderIcon(settingsDir: string): Promise<string | null> {
   const iconPath = path.join(settingsDir, VAULT_FOLDER_ICON_FILE)
   try {
     await fs.access(iconPath)
-    return
+    return iconPath
   } catch {
     const source = resolveBundledIconPath()
-    if (source) await fs.copyFile(source, iconPath)
+    if (!source) return null
+    await fs.copyFile(source, iconPath)
+    return iconPath
   }
+}
+
+/** Sets `vaultRoot`'s Finder icon to `iconPath` (macOS only), the same way
+ *  apps like Obsidian brand their vault folders. Best-effort and
+ *  non-blocking — never awaited by callers, and failures are swallowed. */
+function applyMacFolderIcon(vaultRoot: string, iconPath: string): void {
+  if (process.platform !== 'darwin') return
+
+  const script = `
+    ObjC.import('Cocoa');
+    function run(argv) {
+      const iconPath = argv[0];
+      const targetPath = argv[1];
+      const image = $.NSImage.alloc.initWithContentsOfFile(iconPath);
+      if (!image) return;
+      $.NSWorkspace.sharedWorkspace.setIconForFileOptions(image, targetPath, 0);
+    }
+  `
+
+  execFile('osascript', ['-l', 'JavaScript', '-e', script, iconPath, vaultRoot], (error) => {
+    if (error) console.warn('Failed to set vault folder icon:', error.message)
+  })
 }
 
 export async function ensureVaultFolders(vaultRoot: string): Promise<void> {
