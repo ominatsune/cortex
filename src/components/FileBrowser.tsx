@@ -205,11 +205,13 @@ export default function FileBrowser({
     loadTree()
   }, [loadTree, refreshKey])
 
+  // Reset to the zone's root whenever no file is selected, or the zone itself
+  // changes — otherwise activeFolder can be left pointing at a path from a
+  // different zone (e.g. a diary folder) after switching to Notes with
+  // nothing open, and "New Note" would try to create inside that stale path.
   useEffect(() => {
-    if (selectedPath) {
-      setActiveFolder(pathDir(selectedPath))
-    }
-  }, [selectedPath])
+    setActiveFolder(selectedPath ? pathDir(selectedPath) : '')
+  }, [selectedPath, zone])
 
   const toggleExpand = (path: string) => {
     setExpanded((prev) => {

@@ -1,8 +1,15 @@
 import { app, dialog } from 'electron'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { VAULT_FOLDERS, type CloudProvider } from '@cortex/core'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const VAULT_MARKER_FILE = 'vault.cortex'
+const VAULT_FOLDER_ICON_FILE = 'folder-icon.png'
 
 const CONFIG_FILE = 'cortex-config.json'
 
@@ -105,6 +112,44 @@ export async function createVaultStructure(vaultRoot: string): Promise<void> {
       '---\ntheme: dark\n---\n\n# Cortex Settings\n\nPreferences for this vault. Edit freely — everything here is plain markdown.\n',
       'utf-8'
     )
+  }
+
+  await writeVaultMarker(settingsDir, path.basename(vaultRoot))
+  await writeVaultFolderIcon(settingsDir)
+}
+
+/** Marks a directory as a Cortex vault. Written once — never overwritten, so
+ *  the original creation date survives re-opening the vault later. */
+async function writeVaultMarker(settingsDir: string, vaultName: string): Promise<void> {
+  const markerPath = path.join(settingsDir, VAULT_MARKER_FILE)
+  try {
+    await fs.access(markerPath)
+    return
+  } catch {
+    const creationDate = new Date().toISOString().slice(0, 10)
+    const contents = `cortex.vault {\n    vault.name = '${vaultName}',\n    creation.date = '${creationDate}',\n}\n`
+    await fs.writeFile(markerPath, contents, 'utf-8')
+  }
+}
+
+function resolveBundledIconPath(): string | null {
+  const candidates = [
+    path.join(__dirname, '../dist/favicon-32.png'),
+    path.join(__dirname, '../public/favicon-32.png'),
+  ]
+  return candidates.find((candidate) => existsSync(candidate)) ?? null
+}
+
+/** Drops a small copy of the app icon into the vault's settings folder,
+ *  for use as the vault's folder icon. Written once, like the marker file. */
+async function writeVaultFolderIcon(settingsDir: string): Promise<void> {
+  const iconPath = path.join(settingsDir, VAULT_FOLDER_ICON_FILE)
+  try {
+    await fs.access(iconPath)
+    return
+  } catch {
+    const source = resolveBundledIconPath()
+    if (source) await fs.copyFile(source, iconPath)
   }
 }
 
