@@ -61,6 +61,23 @@
   color: var(--ctp-sapphire);
 }
 
+.center-body .preview-content .contact-mention-link {
+  color: var(--ctp-flamingo);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.center-body .preview-content .contact-mention-link:hover {
+  color: var(--ctp-pink);
+}
+
 .center-body .preview-content .preview-code-block {
   margin: 0 0 0.85em;
   font-family: var(--font-mono);

@@ -12,7 +12,12 @@ import { EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { Prec } from '@codemirror/state'
 import type { MarkdownAction } from '../utils/markdown'
 import { MarkdownToggleController, MARKDOWN_KEYBINDS } from '../utils/markdown-toggles'
-import { livePreviewExtension, wikiLinkClickExtension } from '../codemirror/live-preview'
+import {
+  livePreviewExtension,
+  wikiLinkClickExtension,
+  contactMentionClickExtension,
+  setContactNamesEffect,
+} from '../codemirror/live-preview'
 import { listContinuationExtension } from '../codemirror/markdown-lists'
 import { fenceEditorExtension } from '../codemirror/markdown-fences'
 import {
@@ -46,6 +51,7 @@ interface MarkdownEditorProps {
   onActiveActionsChange?: (active: MarkdownAction[]) => void
   onWikiLinkClick?: (title: string) => void
   onWikiLinkEnsure?: (title: string) => void
+  onContactMentionClick?: (name: string) => void
   wikiLinkEnabled?: boolean
   selectTitleOnMount?: boolean
 }
@@ -82,6 +88,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
       onActiveActionsChange,
       onWikiLinkClick,
       onWikiLinkEnsure,
+      onContactMentionClick,
       wikiLinkEnabled = false,
       selectTitleOnMount,
     },
@@ -93,6 +100,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
     const onChangeRef = useRef(onChange)
     const onWikiLinkClickRef = useRef(onWikiLinkClick)
     const onWikiLinkEnsureRef = useRef(onWikiLinkEnsure)
+    const onContactMentionClickRef = useRef(onContactMentionClick)
     const wikiCtxRef = useRef<WikiLinkContext | null>(null)
     const { theme } = useTheme()
 
@@ -127,6 +135,10 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
     }, [onWikiLinkEnsure])
 
     useEffect(() => {
+      onContactMentionClickRef.current = onContactMentionClick
+    }, [onContactMentionClick])
+
+    useEffect(() => {
       wikiCtxRef.current = wikiCtx
     }, [wikiCtx])
 
@@ -159,14 +171,14 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
     }, [contactCtx])
 
     useEffect(() => {
-      if (!wikiLinkEnabled || !contactCtx) return
+      if (!wikiLinkEnabled) return
       let cancelled = false
       void window.cortex.contacts.list().then((contacts) => {
         if (cancelled) return
         setAllContacts(contacts.map((c) => ({ id: c.id, name: c.name })))
       })
       return () => { cancelled = true }
-    }, [wikiLinkEnabled, contactCtx?.atFrom])
+    }, [wikiLinkEnabled, documentKey])
 
     const editorTheme = useMemo(
       () =>
@@ -233,6 +245,13 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
       () =>
         wikiLinkClickExtension((title) => {
           onWikiLinkClickRef.current?.(title)
+        }),
+      []
+    )
+    const contactClickExt = useMemo(
+      () =>
+        contactMentionClickExtension((name) => {
+          onContactMentionClickRef.current?.(name)
         }),
       []
     )
@@ -306,11 +325,22 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
         keymapExt,
         livePreviewExt,
         wikiClickExt,
+        contactClickExt,
         ...(wikiLinkEnabled ? [wikiAutoExt, contactAutoExt] : []),
         editorTheme,
         changeListener,
       ],
-      [keymapExt, livePreviewExt, wikiClickExt, wikiAutoExt, contactAutoExt, wikiLinkEnabled, editorTheme, changeListener]
+      [
+        keymapExt,
+        livePreviewExt,
+        wikiClickExt,
+        contactClickExt,
+        wikiAutoExt,
+        contactAutoExt,
+        wikiLinkEnabled,
+        editorTheme,
+        changeListener,
+      ]
     )
 
     useEffect(() => {
@@ -337,6 +367,12 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [documentKey])
+
+    useEffect(() => {
+      const view = viewRef.current
+      if (!view) return
+      view.dispatch({ effects: setContactNamesEffect.of(allContacts.map((c) => c.name)) })
+    }, [allContacts, documentKey])
 
     const handleWikiSelect = useCallback(
       (opt: { name: string; path: string; isNew?: boolean }) => {

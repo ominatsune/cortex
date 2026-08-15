@@ -42,6 +42,7 @@
   --ctp-teal: #94e2d5;
   --ctp-blue: #89b4fa;
   --ctp-sapphire: #74c7ec;
+  --ctp-flamingo: #f2cdcd;
 }
 
 [data-theme='light'] {
@@ -73,6 +74,7 @@
   --ctp-teal: #179299;
   --ctp-blue: #1e66f5;
   --ctp-sapphire: #209fb5;
+  --ctp-flamingo: #dd7878;
 }
 
 html,

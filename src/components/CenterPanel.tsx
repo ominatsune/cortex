@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useLayoutEffect, type MutableRefObject } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect, type MutableRefObject } from 'react'
 import { FileDown, Paperclip, Check, Hash, Pencil, X, ArrowLeft } from 'lucide-react'
 import MarkdownEditor, { type MarkdownEditorHandle } from './MarkdownEditor'
 import MarkdownPreview from './MarkdownPreview'
@@ -14,6 +14,7 @@ import { extractNoteTitle } from '../utils/note-meta'
 import { stripTagsBlock, withTagsBlock } from '../utils/note-tags'
 import { pathDir } from './FileBrowser'
 import { resolveWikiLinkPath } from '../utils/wiki-links'
+import { resolveContactMentionName } from '../utils/contact-mentions'
 import type { AppZone, EditorMode, Contact } from '../types'
 import type { MarkdownAction } from '../utils/markdown'
 import './CenterPanel.css'
@@ -53,6 +54,7 @@ interface CenterPanelProps {
   onOpenNote?: (path: string, name: string, opts?: { isNew?: boolean; fromLink?: boolean }) => void
   onNoteSaved?: () => void
   onContactUpdated?: (contact: Contact) => void
+  onOpenContact?: (contact: Contact) => void
   onRefresh: () => void
   onError: (msg: string) => void
   vaultName: string | null
@@ -76,6 +78,7 @@ export default function CenterPanel({
   onOpenNote,
   onNoteSaved,
   onContactUpdated,
+  onOpenContact,
   onRefresh,
   onError,
   vaultName,
@@ -121,15 +124,31 @@ export default function CenterPanel({
   const prevSelectedPathRef = useRef<string | null>(null)
   const preserveModeOnPathChangeRef = useRef(false)
   const [editorSessionKey, setEditorSessionKey] = useState<string | null>(null)
+  const [pageContacts, setPageContacts] = useState<Contact[]>([])
+  const pageContactsRef = useRef<Contact[]>([])
 
   selectedPathRef.current = selectedPath
   contentRef.current = content
   noteTagsRef.current = noteTags
+  pageContactsRef.current = pageContacts
 
   useEffect(() => {
     savingPathRef.current = selectedPath
     selectedPathRef.current = selectedPath
   }, [selectedPath])
+
+  useEffect(() => {
+    if (zone === 'contacts') return
+    let cancelled = false
+    void window.cortex.contacts.list().then((data) => {
+      if (!cancelled) setPageContacts(data)
+    }).catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [zone, selectedPath])
+
+  const contactNames = useMemo(() => pageContacts.map((c) => c.name), [pageContacts])
 
   const reportSaveError = useCallback(
     (err: unknown) => {
@@ -489,6 +508,26 @@ export default function CenterPanel({
     [selectedPath, onOpenNote, onRefresh, onError]
   )
 
+  const handleContactMentionClick = useCallback(
+    async (name: string) => {
+      const match = resolveContactMentionName(name, pageContactsRef.current)
+      if (!match) return
+      try {
+        if (saveTimer.current) {
+          clearTimeout(saveTimer.current)
+          saveTimer.current = null
+        }
+        if (selectedPathRef.current) {
+          await saveNoteRef.current(contentRef.current, noteTagsRef.current)
+        }
+        onOpenContact?.(match)
+      } catch {
+        onError('Failed to open contact')
+      }
+    },
+    [onOpenContact, onError]
+  )
+
   const handleWikiLinkEnsure = useCallback(
     async (title: string) => {
       if (!selectedPath) return
@@ -580,7 +619,15 @@ export default function CenterPanel({
     return (
       <main className="center-panel">
         <div className="center-header">
-          <span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>
+          <div className="center-header-left">
+            <span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>
+            {canGoBack && onNavBack && (
+              <button type="button" className="center-back-btn" onClick={onNavBack}>
+                <ArrowLeft size={14} />
+                Back
+              </button>
+            )}
+          </div>
           <div className="center-actions">
             {onCloseFile && (
               <button className="toolbar-btn" onClick={onCloseFile} title="Close file">
@@ -768,6 +815,7 @@ export default function CenterPanel({
                   onActiveActionsChange={setActiveFormatActions}
                   onWikiLinkClick={handleWikiLinkNavigate}
                   onWikiLinkEnsure={handleWikiLinkEnsure}
+                  onContactMentionClick={handleContactMentionClick}
                   wikiLinkEnabled
                 />
               )}
@@ -781,6 +829,8 @@ export default function CenterPanel({
                 tags={noteTags}
                 onWikiLinkClick={handleWikiLinkNavigate}
                 onTaskToggle={scheduleSave}
+                contactNames={contactNames}
+                onContactClick={handleContactMentionClick}
               />
             </div>
           </div>

@@ -4,6 +4,7 @@ import remarkBreaks from 'remark-breaks'
 import { preserveEmptyLinesForPreview } from '@cortex/core'
 import { toggleTaskAtIndex } from '../utils/note-tasks'
 import { splitMarkdownQuoteSegments } from '../utils/markdown-quotes'
+import { findContactMentions } from '../utils/contact-mentions'
 import { useRef, useMemo, isValidElement, type ReactNode, type ReactElement } from 'react'
 import './MarkdownPreview.css'
 
@@ -12,10 +13,12 @@ interface MarkdownPreviewProps {
   tags?: string[]
   onWikiLinkClick?: (title: string) => void
   onTaskToggle?: (content: string) => void
+  contactNames?: string[]
+  onContactClick?: (name: string) => void
 }
 
 function wikiUrlTransform(url: string): string {
-  if (url.startsWith('wiki://')) return url
+  if (url.startsWith('wiki://') || url.startsWith('contact://')) return url
   return defaultUrlTransform(url)
 }
 
@@ -24,6 +27,22 @@ function preprocessWikiLinks(markdown: string): string {
     const encoded = encodeURIComponent(title.trim())
     return `[${title.trim()}](wiki://${encoded})`
   })
+}
+
+function preprocessContactMentions(markdown: string, contactNames: string[]): string {
+  if (contactNames.length === 0) return markdown
+  const matches = findContactMentions(markdown, contactNames)
+  if (matches.length === 0) return markdown
+  let result = ''
+  let cursor = 0
+  for (const match of matches) {
+    result += markdown.slice(cursor, match.start)
+    const label = markdown.slice(match.start, match.end)
+    result += `[${label}](contact://${encodeURIComponent(match.name)})`
+    cursor = match.end
+  }
+  result += markdown.slice(cursor)
+  return result
 }
 
 function extractText(node: ReactNode): string {
@@ -91,10 +110,15 @@ export default function MarkdownPreview({
   tags = [],
   onWikiLinkClick,
   onTaskToggle,
+  contactNames = [],
+  onContactClick,
 }: MarkdownPreviewProps) {
   const segments = useMemo(
-    () => splitMarkdownQuoteSegments(preprocessWikiLinks(content)),
-    [content]
+    () =>
+      splitMarkdownQuoteSegments(
+        preprocessContactMentions(preprocessWikiLinks(content), contactNames)
+      ),
+    [content, contactNames]
   )
   const taskIndexRef = useRef(0)
   taskIndexRef.current = 0
@@ -111,6 +135,21 @@ export default function MarkdownPreview({
               onClick={(e) => {
                 e.preventDefault()
                 onWikiLinkClick?.(title)
+              }}
+            >
+              {children}
+            </button>
+          )
+        }
+        if (href?.startsWith('contact://')) {
+          const name = decodeURIComponent(href.slice('contact://'.length))
+          return (
+            <button
+              type="button"
+              className="contact-mention-link"
+              onClick={(e) => {
+                e.preventDefault()
+                onContactClick?.(name)
               }}
             >
               {children}
@@ -142,7 +181,7 @@ export default function MarkdownPreview({
         <CodeBlockPreview>{children}</CodeBlockPreview>
       ),
     }),
-    [content, onWikiLinkClick, onTaskToggle]
+    [content, onWikiLinkClick, onTaskToggle, onContactClick]
   )
 
   return (
