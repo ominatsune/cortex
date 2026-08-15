@@ -38,6 +38,9 @@ export interface CalendarEvent {
   location?: string
   notes?: string
   color?: string
+  contactIds?: string[]
+  notePaths?: string[]
+  diaryDates?: string[]
 }
 
 export interface CreateEventInput {
@@ -48,6 +51,9 @@ export interface CreateEventInput {
   location?: string
   notes?: string
   color?: string
+  contactIds?: string[]
+  notePaths?: string[]
+  diaryDates?: string[]
 }
 
 export interface Contact {

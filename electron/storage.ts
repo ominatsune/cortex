@@ -11,6 +11,7 @@ import {
   diaryDateFromPath,
   resolveDiaryPath,
   sanitizeNoteName,
+  stripFileTypeLine,
   stripTagsBlock,
   UNTITLED_NOTE,
 } from '@cortex/core'
@@ -161,8 +162,14 @@ export async function buildTree(dir: string, basePath: string): Promise<TreeNode
 
 export async function listMarkdownFiles(
   dir: string,
-  basePath: string
+  basePath: string,
+  options: { skipHiddenPaths?: boolean } = {}
 ): Promise<{ name: string; path: string; modified: string }[]> {
+  // skipHiddenPaths defaults to true — callers scoping to a single visible
+  // section (e.g. "notes") rely on this to keep contacts/diary/attachments
+  // out of the results. indexAllTags explicitly opts out since it must
+  // scan every record type.
+  const { skipHiddenPaths = true } = options
   const files: { name: string; path: string; modified: string }[] = []
 
   async function walk(currentDir: string) {
@@ -181,7 +188,14 @@ export async function listMarkdownFiles(
         try {
           const stat = await fs.stat(fullPath)
           const rel = normalizeRelative(path.relative(basePath, fullPath))
-          if (isHiddenPath(rel)) continue
+          // The hidden-section check must be relative to the walk root
+          // (dir), not basePath — otherwise scoping the walk to e.g.
+          // "diary/" (itself a hidden top-level folder) would flag every
+          // file inside it as hidden and filter out the whole section.
+          if (skipHiddenPaths) {
+            const relFromDir = normalizeRelative(path.relative(dir, fullPath))
+            if (isHiddenPath(relFromDir)) continue
+          }
           files.push({
             name: entry.name.replace('.md', ''),
             path: rel,
@@ -434,14 +448,17 @@ export async function deleteAttachment(relativePath: string): Promise<boolean> {
 
 export async function indexAllTags(): Promise<{ tag: string; count: number; paths: string[] }[]> {
   const base = getDataPath()
-  const files = await listMarkdownFiles(base, base)
+  const files = await listMarkdownFiles(base, base, { skipHiddenPaths: false })
   const tagMap = new Map<string, string[]>()
 
   for (const file of files) {
     const filePath = vaultFilePath(file.path)
     try {
       const content = await fs.readFile(filePath, 'utf-8')
-      const tags = extractTagsFromContent(content)
+      // Contact files (and any other "typed" file) are prefixed with a
+      // `// type = ... //` marker line, which breaks the frontmatter-tags
+      // regex unless stripped first.
+      const tags = extractTagsFromContent(stripFileTypeLine(content))
       for (const tag of tags) {
         const existing = tagMap.get(tag) ?? []
         existing.push(file.path)

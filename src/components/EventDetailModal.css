@@ -1,0 +1,132 @@
+.event-detail-modal {
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.event-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.event-detail-header h2 {
+  margin: 0;
+}
+
+.event-detail-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.event-detail-loc {
+  color: var(--text-secondary);
+}
+
+.event-link-section {
+  margin-bottom: 16px;
+}
+
+.event-link-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.event-link-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.event-link-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.event-link-chip:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+.event-link-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.7;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.event-link-chip button:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.event-link-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.event-link-add-row {
+  display: flex;
+  gap: 6px;
+}
+
+.event-link-add-row select {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.event-link-add-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.event-link-add-row button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.event-link-add-row button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.event-detail-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+  margin-right: auto;
+}

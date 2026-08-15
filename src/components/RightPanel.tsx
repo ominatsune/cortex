@@ -1,20 +1,18 @@
-import { Calendar, Link2, Tag } from 'lucide-react'
+import { Calendar, Link2 } from 'lucide-react'
 import CalendarPanel from './CalendarPanel'
-import TagLegend from './TagLegend'
 import LinksPanel from './LinksPanel'
-import type { CalendarEvent } from '../types'
+import type { CalendarEvent, Contact } from '../types'
 import './RightPanel.css'
 
-export type FeatureZone = 'calendar' | 'links' | 'tags'
+export type FeatureZone = 'calendar' | 'links'
 
 interface RightPanelProps {
   featureZone: FeatureZone
   onFeatureZoneChange: (zone: FeatureZone) => void
   selectedPath: string | null
   noteContent: string
-  activeTag: string | null
-  onTagSelect: (tag: string | null) => void
   onOpenNote: (path: string, name: string) => void
+  onOpenContact?: (contact: Contact) => void
   refreshKey: number
   diaryRefreshKey?: number
   onError: (msg: string) => void
@@ -28,7 +26,6 @@ interface RightPanelProps {
 const FEATURE_TABS: { id: FeatureZone; label: string; icon: typeof Calendar }[] = [
   { id: 'calendar', label: 'Calendar', icon: Calendar },
   { id: 'links', label: 'Links', icon: Link2 },
-  { id: 'tags', label: 'Tags', icon: Tag },
 ]
 
 export default function RightPanel({
@@ -36,9 +33,8 @@ export default function RightPanel({
   onFeatureZoneChange,
   selectedPath,
   noteContent,
-  activeTag,
-  onTagSelect,
   onOpenNote,
+  onOpenContact,
   refreshKey,
   diaryRefreshKey,
   onError,
@@ -73,6 +69,8 @@ export default function RightPanel({
             focusEvent={focusEvent}
             onClearFocusEvent={onClearFocusEvent}
             onOpenDiaryEntry={onOpenDiaryEntry}
+            onOpenNote={onOpenNote}
+            onOpenContact={onOpenContact}
             diaryRefreshKey={diaryRefreshKey}
             fileRefreshKey={refreshKey}
           />
@@ -84,14 +82,6 @@ export default function RightPanel({
             refreshKey={refreshKey}
             onOpenNote={onOpenNote}
             onError={onError}
-          />
-        )}
-        {featureZone === 'tags' && (
-          <TagLegend
-            activeTag={activeTag}
-            onTagSelect={onTagSelect}
-            refreshKey={refreshKey}
-            variant="panel"
           />
         )}
       </div>

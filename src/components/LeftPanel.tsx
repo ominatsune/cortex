@@ -2,6 +2,7 @@ import { StickyNote, BookOpen, Users, Sun, Moon, FolderOpen, FolderX } from 'luc
 import { VAULT_FOLDERS } from '@cortex/core'
 import FileBrowser from './FileBrowser'
 import ContactsList from './ContactsList'
+import TagLegend from './TagLegend'
 import AppLogo from './AppLogo'
 import { useTheme } from '../context/ThemeContext'
 import type { AppZone, Contact } from '../types'
@@ -17,6 +18,7 @@ interface LeftPanelProps {
   selectedContact: Contact | null
   onSelectContact: (contact: Contact | null) => void
   activeTag: string | null
+  onTagSelect: (tag: string | null) => void
   refreshKey: number
   onRefresh: () => void
   onError: (msg: string) => void
@@ -40,6 +42,7 @@ export default function LeftPanel({
   selectedContact,
   onSelectContact,
   activeTag,
+  onTagSelect,
   refreshKey,
   onRefresh,
   onError,
@@ -84,6 +87,7 @@ export default function LeftPanel({
             refreshKey={refreshKey}
             onRefresh={onRefresh}
             onError={onError}
+            activeTag={activeTag}
           />
         ) : (
           <FileBrowser
@@ -100,6 +104,8 @@ export default function LeftPanel({
           />
         )}
       </div>
+
+      <TagLegend activeTag={activeTag} onTagSelect={onTagSelect} refreshKey={refreshKey} />
 
       <div className="vault-footer">
         <div className="vault-footer-info">

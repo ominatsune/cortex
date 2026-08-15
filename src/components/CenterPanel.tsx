@@ -5,7 +5,7 @@ import MarkdownPreview from './MarkdownPreview'
 import MarkdownToolbar from './MarkdownToolbar'
 import ModeToggle from './ModeToggle'
 import TagsPopup from './TagsPopup'
-import { UNTITLED_CONTACT, UNTITLED_NOTE, diaryDateFromPath, isDiaryPath } from '@cortex/core'
+import { UNTITLED_CONTACT, UNTITLED_NOTE, diaryDateFromPath, isDiaryPath, isValidDiaryDate } from '@cortex/core'
 import { buildPdfHtml } from '../utils/pdf'
 import { attachmentMarkdown } from '../utils/markdown'
 import NotePathHeader from './NotePathHeader'
@@ -476,6 +476,16 @@ export default function CenterPanel({
         }
         await saveNoteRef.current(contentRef.current, noteTagsRef.current)
 
+        // [[YYYY-MM-DD]] always refers to a diary entry — resolve/create it
+        // directly rather than treating it as a plain note title.
+        const trimmedTitle = title.trim()
+        if (isValidDiaryDate(trimmedTitle)) {
+          const diaryPath = await window.cortex.storage.openDiaryEntry(trimmedTitle)
+          onRefresh()
+          onOpenNote?.(diaryPath, trimmedTitle, { isNew: false, fromLink: true })
+          return
+        }
+
         // Search notes and diary for the link target
         const [notesFiles, diaryFiles] = await Promise.all([
           window.cortex.storage.listFiles('notes'),
@@ -532,6 +542,13 @@ export default function CenterPanel({
     async (title: string) => {
       if (!selectedPath) return
       try {
+        const trimmedTitle = title.trim()
+        if (isValidDiaryDate(trimmedTitle)) {
+          await window.cortex.storage.openDiaryEntry(trimmedTitle)
+          onRefresh()
+          return
+        }
+
         const [notesFiles, diaryFiles] = await Promise.all([
           window.cortex.storage.listFiles('notes'),
           window.cortex.storage.listFiles('diary'),
@@ -601,6 +618,16 @@ export default function CenterPanel({
 
   const handleApplyTags = (tags: string[]) => {
     scheduleSave(contentRef.current, tags)
+    setShowTagsPopup(false)
+  }
+
+  const contactTagList = contactForm.tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+
+  const handleApplyContactTags = (tags: string[]) => {
+    updateContactForm({ tags: tags.join(', ') })
     setShowTagsPopup(false)
   }
 
@@ -687,10 +714,14 @@ export default function CenterPanel({
                     <span>{contactForm.phone}</span>
                   </div>
                 )}
-                {contactForm.tags && (
+                {contactTagList.length > 0 && (
                   <div className="contact-view-row">
                     <span className="contact-view-label">Tags</span>
-                    <span>{contactForm.tags}</span>
+                    <span className="contact-tags-row">
+                      {contactTagList.map((tag) => (
+                        <span key={tag} className="note-tag-chip">#{tag}</span>
+                      ))}
+                    </span>
                   </div>
                 )}
               </div>
@@ -728,8 +759,19 @@ export default function CenterPanel({
                 <input value={contactForm.company} onChange={(e) => updateContactForm({ company: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Tags (comma-separated)</label>
-                <input value={contactForm.tags} onChange={(e) => updateContactForm({ tags: e.target.value })} />
+                <label>Tags</label>
+                <div className="contact-tags-row">
+                  {contactTagList.length > 0 ? (
+                    contactTagList.map((tag) => (
+                      <span key={tag} className="note-tag-chip">#{tag}</span>
+                    ))
+                  ) : (
+                    <span className="contact-tags-empty">No tags yet</span>
+                  )}
+                  <button type="button" className="toolbar-btn" onClick={() => setShowTagsPopup(true)}>
+                    <Hash size={13} /> Manage tags
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>Notes</label>
@@ -737,6 +779,14 @@ export default function CenterPanel({
               </div>
             </div>
           </div>
+        )}
+
+        {showTagsPopup && (
+          <TagsPopup
+            tags={contactTagList}
+            onApply={handleApplyContactTags}
+            onClose={() => setShowTagsPopup(false)}
+          />
         )}
       </main>
     )

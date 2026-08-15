@@ -283,6 +283,7 @@ export default function App() {
           selectedContact={selectedContact}
           onSelectContact={setSelectedContact}
           activeTag={activeTag}
+          onTagSelect={setActiveTag}
           refreshKey={refreshKey}
           onRefresh={refresh}
           onError={handleError}
@@ -323,9 +324,8 @@ export default function App() {
           onFeatureZoneChange={setFeatureZone}
           selectedPath={selectedPath}
           noteContent={openNoteContent}
-          activeTag={activeTag}
-          onTagSelect={setActiveTag}
           onOpenNote={handleSelectPath}
+          onOpenContact={handleOpenContactFromMention}
           refreshKey={refreshKey}
           diaryRefreshKey={diaryRefreshKey}
           onError={handleError}

@@ -6,8 +6,9 @@ import {
 } from 'date-fns'
 import { ChevronLeft, ChevronRight, Plus, Trash2, BookOpen } from 'lucide-react'
 import { resolveDiaryPath } from '@cortex/core'
-import type { CalendarEvent } from '../types'
+import type { CalendarEvent, Contact } from '../types'
 import ConfirmDialog from './ConfirmDialog'
+import EventDetailModal from './EventDetailModal'
 import './CalendarPanel.css'
 
 interface CalendarPanelProps {
@@ -17,11 +18,13 @@ interface CalendarPanelProps {
   focusEvent?: CalendarEvent | null
   onClearFocusEvent?: () => void
   onOpenDiaryEntry?: (dateStr: string) => void
+  onOpenNote?: (path: string, name: string) => void
+  onOpenContact?: (contact: Contact) => void
   diaryRefreshKey?: number
   fileRefreshKey?: number
 }
 
-export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, focusEvent, onClearFocusEvent, onOpenDiaryEntry, diaryRefreshKey, fileRefreshKey }: CalendarPanelProps) {
+export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, focusEvent, onClearFocusEvent, onOpenDiaryEntry, onOpenNote, onOpenContact, diaryRefreshKey, fileRefreshKey }: CalendarPanelProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [diaryDates, setDiaryDates] = useState<Set<string>>(new Set())
@@ -31,6 +34,7 @@ export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, f
   const [pendingDelete, setPendingDelete] = useState<CalendarEvent | null>(null)
   const [pendingDiaryDelete, setPendingDiaryDelete] = useState<string | null>(null)
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null)
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null)
 
   const loadEvents = useCallback(async () => {
     const start = startOfMonth(currentMonth).toISOString()
@@ -125,11 +129,35 @@ export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, f
     if (!pendingDelete) return
     try {
       await window.cortex.calendar.deleteEvent(pendingDelete.id)
+      setDetailEvent((prev) => (prev?.id === pendingDelete.id ? null : prev))
       loadEvents()
     } catch {
       onError('Failed to delete event')
     } finally {
       setPendingDelete(null)
+    }
+  }
+
+  const handleUpdateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
+    try {
+      const updated = await window.cortex.calendar.updateEvent(id, updates)
+      if (updated) {
+        setEvents((prev) => prev.map((e) => (e.id === id ? updated : e)))
+        setDetailEvent(updated)
+      }
+    } catch {
+      onError('Failed to update event')
+    }
+  }
+
+  const handleAddDiaryEntry = async () => {
+    try {
+      await window.cortex.storage.openDiaryEntry(selectedDateStr)
+      setDiaryDates((prev) => new Set(prev).add(selectedDateStr))
+      onRefresh?.()
+      onOpenDiaryEntry?.(selectedDateStr)
+    } catch {
+      onError('Failed to create diary entry')
     }
   }
 
@@ -223,22 +251,40 @@ export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, f
           </div>
         )}
 
+        {!selectedHasDiary && (
+          <button type="button" className="cal-diary-add" onClick={handleAddDiaryEntry}>
+            <BookOpen size={13} />
+            Add diary entry
+          </button>
+        )}
+
         {selectedEvents.map((evt) => (
           <div
             key={evt.id}
             className={`cal-event ${highlightedEventId === evt.id ? 'cal-event-focused' : ''}`}
+            onClick={() => setDetailEvent(evt)}
+            role="button"
+            tabIndex={0}
           >
             <div className="cal-event-title">{evt.title}</div>
             <div className="cal-event-time">
               {evt.allDay ? 'All day' : format(parseISO(evt.start), 'h:mm a')}
             </div>
             {evt.location && <div className="cal-event-loc">{evt.location}</div>}
-            <button className="cal-event-delete" onClick={() => requestDelete(evt)}>
+            {((evt.contactIds?.length ?? 0) + (evt.notePaths?.length ?? 0) + (evt.diaryDates?.length ?? 0)) > 0 && (
+              <div className="cal-event-link-count">
+                {(evt.contactIds?.length ?? 0) + (evt.notePaths?.length ?? 0) + (evt.diaryDates?.length ?? 0)} linked
+              </div>
+            )}
+            <button
+              className="cal-event-delete"
+              onClick={(e) => { e.stopPropagation(); requestDelete(evt) }}
+            >
               <Trash2 size={12} />
             </button>
           </div>
         ))}
-        {selectedEvents.length === 0 && !selectedHasDiary && (
+        {selectedEvents.length === 0 && (
           <div className="cal-no-events">No events</div>
         )}
       </div>
@@ -294,6 +340,19 @@ export default function CalendarPanel({ onError, onRefresh, onCloseDiaryEntry, f
         onConfirm={confirmDiaryDelete}
         onCancel={() => setPendingDiaryDelete(null)}
       />
+
+      {detailEvent && (
+        <EventDetailModal
+          event={detailEvent}
+          onClose={() => setDetailEvent(null)}
+          onUpdate={(updates) => handleUpdateEvent(detailEvent.id, updates)}
+          onDelete={() => requestDelete(detailEvent)}
+          onOpenContact={(contact) => { setDetailEvent(null); onOpenContact?.(contact) }}
+          onOpenNote={(path, name) => { setDetailEvent(null); onOpenNote?.(path, name) }}
+          onOpenDiaryEntry={(dateStr) => { setDetailEvent(null); onOpenDiaryEntry?.(dateStr) }}
+          onError={onError}
+        />
+      )}
     </div>
   )
 }
