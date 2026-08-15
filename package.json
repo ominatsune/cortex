@@ -22,7 +22,8 @@
     "package:linux": "npm run build && electron-builder --linux",
     "icons": "bash scripts/generate-icons.sh",
     "icons:mac": "bash scripts/generate-mac-icon.sh",
-    "postinstall": "node scripts/postinstall.mjs"
+    "postinstall": "node scripts/postinstall.mjs",
+    "release": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
