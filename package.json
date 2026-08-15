@@ -1,6 +1,6 @@
 {
   "name": "cortex",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Open-source cross-platform note-taking app with calendar, diary, contacts, and tags",
   "private": true,
   "workspaces": [
@@ -8,8 +8,8 @@
   ],
   "main": "dist-electron/main.js",
   "author": {
-  "name": "ominatsune",
-  "email": "ominatsune@proton.me"
+    "name": "ominatsune",
+    "email": "ominatsune@proton.me"
   },
   "license": "MIT",
   "scripts": {
