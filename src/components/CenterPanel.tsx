@@ -617,8 +617,18 @@ export default function CenterPanel({
   }
 
   const handleApplyTags = (tags: string[]) => {
-    scheduleSave(contentRef.current, tags)
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current)
+      saveTimer.current = null
+    }
+    noteTagsRef.current = tags
+    setNoteTagsState(tags)
     setShowTagsPopup(false)
+    // Save immediately (skip the debounce) and refresh once it lands, so
+    // the tag legend doesn't keep showing stale tags for the file.
+    void saveNoteRef.current(contentRef.current, tags)
+      .then(() => onRefresh())
+      .catch(reportSaveError)
   }
 
   const contactTagList = contactForm.tags
@@ -627,8 +637,15 @@ export default function CenterPanel({
     .filter(Boolean)
 
   const handleApplyContactTags = (tags: string[]) => {
-    updateContactForm({ tags: tags.join(', ') })
+    if (contactSaveTimer.current) {
+      clearTimeout(contactSaveTimer.current)
+      contactSaveTimer.current = null
+    }
+    const next = { ...contactForm, tags: tags.join(', ') }
+    setContactForm(next)
     setShowTagsPopup(false)
+    // saveContact refreshes the tag legend internally once the write lands.
+    void saveContact(next)
   }
 
   if (zone === 'contacts') {

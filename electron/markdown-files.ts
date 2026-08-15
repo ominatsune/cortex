@@ -12,7 +12,7 @@ export function parseFrontmatter(raw: string): { meta: Record<string, string>; b
 
 export function buildFrontmatter(meta: Record<string, string | boolean | string[] | undefined>, body = ''): string {
   const lines = Object.entries(meta)
-    .filter(([, v]) => v !== undefined && v !== '')
+    .filter(([, v]) => v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0))
     .map(([k, v]) => {
       if (Array.isArray(v)) return `${k}: ${v.join(', ')}`
       if (typeof v === 'boolean') return `${k}: ${v}`
