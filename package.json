@@ -1,6 +1,6 @@
 {
   "name": "cortex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source cross-platform note-taking app with calendar, diary, contacts, and tags",
   "private": true,
   "workspaces": [
