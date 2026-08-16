@@ -257,6 +257,28 @@
   margin-top: 2px;
 }
 
+.cal-event-contacts {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.cal-event-contact-link {
+  color: var(--ctp-flamingo);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cal-event-contact-link:hover {
+  color: var(--ctp-pink);
+}
+
+.cal-event-tags {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
 .cal-event-delete {
   position: absolute;
   top: 6px;
@@ -279,3 +301,74 @@
   color: var(--text-muted);
   padding: 8px 0;
 }
+
+.event-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.event-form-header h2 {
+  margin: 0;
+}
+
+.event-form-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.event-form-date-nav button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.event-form-date-nav button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.event-form-tags-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.event-form-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.event-form-tag-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.7;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.event-form-tag-chip button:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+

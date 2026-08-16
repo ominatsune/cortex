@@ -70,14 +70,19 @@ export async function searchVault(query: string): Promise<SearchResult[]> {
     if (fileType === 'calendar') {
       const event = parseEventFile(raw)
       if (!event) continue
-      const haystack = [event.title, event.location, event.notes].filter(Boolean).join(' ').toLowerCase()
+      const eventTags = event.tags ?? []
+      const haystack = [event.title, event.location, event.notes, ...eventTags].filter(Boolean).join(' ').toLowerCase()
       if (haystack.includes(q) && calendar.length < RESULTS_PER_TYPE) {
+        const base = event.location || event.start.slice(0, 10)
         calendar.push({
           type: 'calendar',
           path: file.path,
           title: event.title,
-          subtitle: event.location || event.start.slice(0, 10),
+          subtitle: eventTags.length > 0 ? `${base} · ${eventTags.map((t) => `#${t}`).join(', ')}` : base,
         })
+      }
+      for (const tag of eventTags) {
+        if (tag.toLowerCase().includes(q)) tagHits.set(tag.toLowerCase(), tag)
       }
       continue
     }
@@ -86,7 +91,7 @@ export async function searchVault(query: string): Promise<SearchResult[]> {
     const stripped = stripFileTypeLine(raw)
     const title = extractNoteTitle(stripped)
     const { body, tags } = stripTagsBlock(stripped)
-    const haystack = `${title} ${body}`.toLowerCase()
+    const haystack = `${title} ${body} ${tags.join(' ')}`.toLowerCase()
     const isDiary = isDiaryPath(file.path)
     const bucket = isDiary ? diary : notes
     if (haystack.includes(q) && bucket.length < RESULTS_PER_TYPE) {
@@ -94,7 +99,7 @@ export async function searchVault(query: string): Promise<SearchResult[]> {
         type: isDiary ? 'diary' : 'note',
         path: file.path,
         title,
-        subtitle: buildSnippet(body, q),
+        subtitle: buildSnippet(body, q) || (tags.length > 0 ? tags.map((t) => `#${t}`).join(', ') : undefined),
       })
     }
     for (const tag of tags) {

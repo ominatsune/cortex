@@ -37,24 +37,27 @@ Cortex brings together Markdown notes, a daily diary, contacts, a built-in calen
 
 ### Search
 - **Vault-wide search** — a persistent search bar and a global `Cmd/Ctrl+K` command palette, both searching notes, diary entries, contacts, calendar events, and tags in one place
-- Results are grouped by type and jump straight to the right note, entry, contact, or event
+- Matches on content and title, and on **tags** — searching a tag surfaces every note, diary entry, contact, or calendar event it's attached to, not just a matching tag name
+- Results are grouped by type and jump straight to the right note, entry, contact, or event; calendar results show their tags inline
 
 ### Notes & editing
-- **Markdown notes** with a full formatting toolbar — headings, bold/italic/strikethrough, inline code and code blocks, blockquotes, bullet/numbered/task lists, links, images, tables, and horizontal rules
+- **Markdown notes** with a full formatting toolbar — headings, bold/italic/strikethrough/underline, inline code and code blocks, blockquotes, bullet/numbered/task lists, links, images, tables, and horizontal rules
 - **Live preview editing** — markdown syntax renders inline as you type and reveals itself when your cursor is on that line
 - **Folders** — organize notes in nested folder structures
 - **Attachments** — attach files to notes or folders
 - **[[Wikilinks]]** with autocomplete, plus a backlinks/outgoing-links panel for every note and diary entry
 - **PDF export** — export any note as a PDF document
+- A consistent action row across every note, diary entry, contact, and calendar event — Back navigation, a Read/Edit mode toggle, and Close/Delete, always in the same place
 
 ### Organization
-- **Tags** — `#inline` tags or YAML frontmatter, with a filterable tag legend that works across notes, diary, and contacts
+- **Tags** — `#inline` tags or YAML frontmatter, with a filterable tag legend that works across notes, diary, contacts, and calendar events
 - **Diary** — daily journal entries organized by year, with one-click access to today's entry
 
 ### Contacts & calendar
 - **Contacts** — track email, phone, company, and freeform notes per contact
 - **`@mentions`** — mention a contact anywhere in a note; mentions are colored, clickable, and navigable, with a Back button to return to where you were
-- **Calendar** — a built-in calendar for events, where each event can link out to related contacts, notes, and diary entries
+- **Calendar** — a built-in calendar for events, where each event can link out to related contacts, notes, diary entries, and tags
+- Events open in the main panel like notes and contacts, starting in Read mode with an Edit toggle; new contacts can be created and linked directly from an existing event, and the calendar view updates live as you edit
 
 ### Storage & sync
 - **Local-first** — your data is plain Markdown files in a vault directory you choose; it stays fully accessible outside the app

@@ -41,6 +41,7 @@ export interface CalendarEvent {
   contactIds?: string[]
   notePaths?: string[]
   diaryDates?: string[]
+  tags?: string[]
 }
 
 export interface CreateEventInput {
@@ -54,6 +55,7 @@ export interface CreateEventInput {
   contactIds?: string[]
   notePaths?: string[]
   diaryDates?: string[]
+  tags?: string[]
 }
 
 export interface Contact {

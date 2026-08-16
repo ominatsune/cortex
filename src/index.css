@@ -29,6 +29,10 @@
   --left-panel-width: 260px;
   --right-panel-width: 300px;
   --toolbar-height: 48px;
+  /* Uniform width for every action-row button (Back, mode-toggle segments,
+     Close, Delete) — wide enough for the longest label ("CONTACT"/"DELETE")
+     across all four modes, so no button reads as bigger or smaller. */
+  --action-cell-width: 76px;
   --radius: 8px;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
@@ -166,6 +170,47 @@ textarea::placeholder {
 .form-group input:focus,
 .form-group textarea:focus {
   border-color: var(--accent);
+}
+
+/* Checkboxes shouldn't inherit the full-width text-input treatment above —
+   otherwise they stretch to fill the row and end up visually detached from
+   their label text. */
+.form-group input[type='checkbox'] {
+  width: auto;
+  padding: 0;
+}
+
+.form-group-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group-checkbox label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0 !important;
+}
+
+/* The native time/date picker icon defaults to black, which disappears
+   against the app's dark theme — invert it there and leave it as-is for
+   light theme where black is already visible. */
+input[type='time']::-webkit-calendar-picker-indicator,
+input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type='time']::-webkit-calendar-picker-indicator:hover,
+input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+[data-theme='light'] input[type='time']::-webkit-calendar-picker-indicator,
+[data-theme='light'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 
 .form-row {

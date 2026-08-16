@@ -1,0 +1,33 @@
+.event-view-body {
+  padding: 20px 32px;
+  overflow-y: auto;
+  max-width: 640px;
+}
+
+.event-view-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.event-view-time {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.event-view-loc {
+  color: var(--text-secondary);
+}
+
+.event-view-outer {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+}
+
+.event-link-manage-tags {
+  margin-top: 8px;
+}

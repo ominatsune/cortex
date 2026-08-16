@@ -78,6 +78,11 @@
   color: var(--ctp-pink);
 }
 
+.center-body .preview-content .preview-underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .center-body .preview-content .preview-code-block {
   margin: 0 0 0.85em;
   font-family: var(--font-mono);

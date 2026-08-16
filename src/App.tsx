@@ -17,6 +17,7 @@ export default function App() {
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
   const [selectedName, setSelectedName] = useState<string | null>(null)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [focusedCalendarEvent, setFocusedCalendarEvent] = useState<CalendarEvent | null>(null)
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -62,6 +63,7 @@ export default function App() {
       setSelectedPath(null)
       setSelectedName(null)
       setSelectedContact(null)
+      setSelectedEvent(null)
       setFocusedCalendarEvent(null)
       setActiveTag(null)
     } catch {
@@ -85,6 +87,7 @@ export default function App() {
     setSelectedPath(null)
     setSelectedName(null)
     setSelectedContact(null)
+    setSelectedEvent(null)
     setOpenInEditMode(false)
     setIsNewNote(false)
     setOpenNoteContent('')
@@ -94,6 +97,7 @@ export default function App() {
     setNavHistory([])
     setSelectedPath(null)
     setSelectedName(null)
+    setSelectedEvent(null)
     setOpenInEditMode(false)
     setIsNewNote(false)
     setOpenNoteContent('')
@@ -109,6 +113,7 @@ export default function App() {
           if (contact) {
             setZone('contacts')
             setSelectedContact(contact)
+            setSelectedEvent(null)
             setSelectedPath(null)
             setSelectedName(null)
             setOpenInEditMode(false)
@@ -118,10 +123,12 @@ export default function App() {
         if (fileType === 'calendar' || path.startsWith('.calendar/')) {
           const event = await window.cortex.calendar.getByPath(path)
           if (event) {
+            setSelectedEvent(event)
             setFocusedCalendarEvent(event)
             setSelectedPath(null)
             setSelectedName(null)
             setSelectedContact(null)
+            setOpenInEditMode(false)
             return
           }
         }
@@ -141,6 +148,7 @@ export default function App() {
     setOpenInEditMode(opts?.isNew ?? false)
     setIsNewNote(opts?.isNew ?? false)
     setSelectedContact(null)
+    setSelectedEvent(null)
     setFocusedCalendarEvent(null)
   }, [])
 
@@ -163,11 +171,30 @@ export default function App() {
     setNavHistory((history) => (currentPath ? [...history, currentPath] : history))
     setZone('contacts')
     setSelectedContact(contact)
+    setSelectedEvent(null)
     setSelectedPath(null)
     setSelectedName(null)
     setFocusedCalendarEvent(null)
     setIsNewNote(false)
     setOpenNoteContent('')
+  }, [])
+
+  const handleOpenCalendarEvent = useCallback((event: CalendarEvent) => {
+    const currentPath = selectedPathRef.current
+    setNavHistory((history) => (currentPath ? [...history, currentPath] : history))
+    setSelectedEvent(event)
+    setFocusedCalendarEvent(event)
+    setSelectedContact(null)
+    setSelectedPath(null)
+    setSelectedName(null)
+    setIsNewNote(false)
+    setOpenNoteContent('')
+  }, [])
+
+  const handleEventDeleted = useCallback(() => {
+    setNavHistory([])
+    setSelectedEvent(null)
+    setFocusedCalendarEvent(null)
   }, [])
 
   const handleNavBack = useCallback(() => {
@@ -186,6 +213,7 @@ export default function App() {
   const handleZoneChange = useCallback(async (newZone: AppZone) => {
     setZone(newZone)
     setSelectedContact(null)
+    setSelectedEvent(null)
     setActiveTag(null)
     setFocusedCalendarEvent(null)
     setIsNewNote(false)
@@ -213,6 +241,7 @@ export default function App() {
   const handleOpenDiaryEntry = useCallback(async (dateStr: string) => {
     setZone('diary')
     setSelectedContact(null)
+    setSelectedEvent(null)
     setActiveTag(null)
     setFocusedCalendarEvent(null)
     setIsNewNote(false)
@@ -326,6 +355,7 @@ export default function App() {
             selectedPath={selectedPath}
             selectedName={selectedName}
             selectedContact={selectedContact}
+            selectedEvent={selectedEvent}
             openInEditMode={openInEditMode}
             isNewNote={isNewNote}
             skipFlushRef={skipFlushRef}
@@ -336,6 +366,9 @@ export default function App() {
             onNoteSaved={handleNoteSaved}
             onContactUpdated={setSelectedContact}
             onOpenContact={handleOpenContactFromMention}
+            onOpenDiaryEntry={handleOpenDiaryEntry}
+            onCloseDiaryEntry={handleCloseDiaryEntry}
+            onEventDeleted={handleEventDeleted}
             onRefresh={refresh}
             onError={handleError}
             vaultName={vaultStatus.name}
@@ -349,7 +382,6 @@ export default function App() {
           selectedPath={selectedPath}
           noteContent={openNoteContent}
           onOpenNote={handleSelectPath}
-          onOpenContact={handleOpenContactFromMention}
           refreshKey={refreshKey}
           diaryRefreshKey={diaryRefreshKey}
           onError={handleError}
@@ -358,6 +390,8 @@ export default function App() {
           onClearFocusEvent={() => setFocusedCalendarEvent(null)}
           onOpenDiaryEntry={handleOpenDiaryEntry}
           onCloseDiaryEntry={handleCloseDiaryEntry}
+          onOpenEvent={handleOpenCalendarEvent}
+          onOpenContact={handleOpenContactFromMention}
         />
       </div>
       <SearchPalette

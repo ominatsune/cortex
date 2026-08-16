@@ -44,5 +44,9 @@ mobile/.expo-shared/
 # kiro
 .kiro/
 
+# zed
+.zed/
+
 # CLAUDE
 CLAUDE.md
+

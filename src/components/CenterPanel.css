@@ -7,17 +7,63 @@
   background: var(--bg-primary);
 }
 
-.center-header {
+.action-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: var(--toolbar-height);
-  padding: 0 16px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-secondary);
   -webkit-app-region: drag;
-  gap: 12px;
   flex-shrink: 0;
+}
+
+/* Contact/Event bodies use a wider 32px canvas inset than Notes/Diary's
+   20px, so their action row needs to match to keep left/right edges
+   aligned with the content below. */
+.action-row-wide {
+  padding: 0 32px;
+}
+
+.action-row-left,
+.action-row-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.action-row-right {
+  justify-content: flex-end;
+}
+
+/* Fixed + viewport-centered rather than flex-centered within the row: the
+   left (260px) and right (300px) side panels aren't the same width, so
+   centering within just the center panel's own span lands visibly left of
+   the actual window center. This anchors to the true window midpoint
+   regardless of panel widths. */
+.action-row-center {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: var(--toolbar-height);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  -webkit-app-region: no-drag;
+}
+
+/* Mirrors the Back button's footprint on the far side of the mode toggle,
+   invisibly, so centering this whole (back + toggle + ghost) row keeps the
+   toggle's own midpoint dead-center on screen — the Back button then reads
+   as an offset addition rather than pulling the toggle off-center. */
+.action-row-ghost {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .center-title {
@@ -28,12 +74,60 @@
   white-space: nowrap;
 }
 
-.center-actions {
+.action-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  -webkit-app-region: no-drag;
+  justify-content: center;
+  gap: 0;
+  padding: 4px 12px;
+  width: var(--action-cell-width);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.action-btn-main {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+
+.action-btn-sub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  line-height: 1.2;
+}
+
+.action-btn.danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.action-btn.danger:hover {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 .diary-date-picker {
@@ -63,27 +157,6 @@
   flex-direction: column;
   padding: 16px 20px 20px;
   background: var(--bg-primary);
-}
-
-.center-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--bg-secondary);
-  flex-shrink: 0;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.center-back-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--text-muted);
 }
 
 .note-canvas {

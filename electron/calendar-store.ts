@@ -38,6 +38,7 @@ export function parseEventFile(raw: string): StoredCalendarEvent | null {
     contactIds: parseCsv(meta.contactIds),
     notePaths: parseCsv(meta.notePaths),
     diaryDates: parseCsv(meta.diaryDates),
+    tags: parseCsv(meta.tags),
   }
 }
 
@@ -58,6 +59,7 @@ async function writeEventFile(event: StoredCalendarEvent, existingPath?: string)
         contactIds: event.contactIds,
         notePaths: event.notePaths,
         diaryDates: event.diaryDates,
+        tags: event.tags,
       },
       event.notes ?? ''
     )
