@@ -1,0 +1,113 @@
+.search-palette-overlay {
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+
+.search-palette {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 560px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+}
+
+.search-palette-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.search-palette-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.search-palette-input-row input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.search-palette-results {
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.search-palette-group + .search-palette-group {
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.search-palette-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 6px 10px 4px;
+}
+
+.search-palette-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.search-palette-item:hover,
+.search-palette-item.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.search-palette-item-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.search-palette-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-palette-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-palette-item-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-palette-empty {
+  padding: 24px 12px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-muted);
+}

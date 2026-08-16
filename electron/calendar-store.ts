@@ -22,7 +22,7 @@ function parseCsv(value: string | undefined): string[] | undefined {
   return items.length > 0 ? items : undefined
 }
 
-function parseEventFile(raw: string): StoredCalendarEvent | null {
+export function parseEventFile(raw: string): StoredCalendarEvent | null {
   const stripped = stripFileTypeLine(raw)
   const { meta, body } = parseFrontmatter(stripped)
   if (!meta.id || !meta.title || !meta.start || !meta.end) return null

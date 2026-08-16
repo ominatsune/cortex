@@ -4,9 +4,10 @@ import LeftPanel from './components/LeftPanel'
 import CenterPanel from './components/CenterPanel'
 import RightPanel, { type FeatureZone } from './components/RightPanel'
 import VaultSetup from './components/VaultSetup'
+import SearchPalette from './components/SearchPalette'
 import { ThemeProvider } from './context/ThemeContext'
 import { parseFileType, isDiaryPath, resolveDiaryPath } from '@cortex/core'
-import type { AppZone, CalendarEvent, Contact, VaultStatus } from './types'
+import type { AppZone, CalendarEvent, Contact, SearchResult, VaultStatus } from './types'
 import './App.css'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
   const [isNewNote, setIsNewNote] = useState(false)
   const [featureZone, setFeatureZone] = useState<FeatureZone>('calendar')
   const [openNoteContent, setOpenNoteContent] = useState('')
+  const [showSearchPalette, setShowSearchPalette] = useState(false)
   const skipFlushRef = useRef(false)
   const selectedPathRef = useRef<string | null>(null)
   const [navHistory, setNavHistory] = useState<string[]>([])
@@ -247,6 +249,27 @@ export default function App() {
   }, [focusedCalendarEvent])
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setShowSearchPalette((open) => !open)
+      }
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [])
+
+  const handleSearchResultSelect = useCallback((result: SearchResult) => {
+    if (result.type === 'tag') {
+      setActiveTag(result.title.replace(/^#/, ''))
+      return
+    }
+    if (result.path) {
+      void handleSelectPath(result.path, result.title, { fromLink: true })
+    }
+  }, [handleSelectPath])
+
+  useEffect(() => {
     if (!error) return
     const timer = setTimeout(dismissError, 8000)
     return () => clearTimeout(timer)
@@ -289,6 +312,7 @@ export default function App() {
           onError={handleError}
           vaultName={vaultStatus.name}
           onCloseVault={handleCloseVault}
+          onSearchResultSelect={handleSearchResultSelect}
         />
         <div className="cortex-main">
           {error && (
@@ -336,6 +360,11 @@ export default function App() {
           onCloseDiaryEntry={handleCloseDiaryEntry}
         />
       </div>
+      <SearchPalette
+        open={showSearchPalette}
+        onClose={() => setShowSearchPalette(false)}
+        onResultSelect={handleSearchResultSelect}
+      />
     </ThemeProvider>
   )
 }

@@ -24,6 +24,7 @@ import {
   deleteAttachment,
   indexAllTags,
 } from './storage'
+import { searchVault } from './search'
 import {
   listStoredEvents,
   createStoredEvent,
@@ -337,6 +338,17 @@ ipcMain.handle('tags:index', async () => {
   requireVault()
   try {
     return await indexAllTags()
+  } catch {
+    return []
+  }
+})
+
+// --- Search ---
+
+ipcMain.handle('search:query', async (_, term: string) => {
+  requireVault()
+  try {
+    return await searchVault(term)
   } catch {
     return []
   }
