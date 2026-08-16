@@ -5,6 +5,7 @@
 <p>
 
 [![GitHub License](https://img.shields.io/github/license/ominatsune/cortex)](https://github.com/ominatsune/cortex/blob/master/LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/ominatsune/cortex?label=latest%20release)](https://github.com/ominatsune/cortex/releases/latest)
 [![Status](https://img.shields.io/badge/status-early%20access-orange)](https://github.com/ominatsune/cortex)
 [![GitHub Stars](https://img.shields.io/github/stars/ominatsune/cortex?style=flat)](https://github.com/ominatsune/cortex/stargazers)
 [![GitHub Issues](https://img.shields.io/github/issues/ominatsune/cortex)](https://github.com/ominatsune/cortex/issues)
@@ -20,7 +21,7 @@
 
 An open-source cross-platform note-taking and personal knowledge management app for macOS, Linux, and Windows.
 
-Cortex provides Markdown notes, attachments, tags, contacts, diary entries, a built-in calendar, and PDF export — with data stored in a local vault.
+Cortex brings together Markdown notes, a daily diary, contacts, a built-in calendar, and vault-wide search — with everything stored as plain files in a local vault you fully own.
 
 > [!WARNING]
 > **Cortex is currently in early access.**
@@ -34,17 +35,32 @@ Cortex provides Markdown notes, attachments, tags, contacts, diary entries, a bu
 ---
 ## Features
 
-- **Three-panel layout** — Browser / app zones / tag legend on the left, notes in the center, and calendar / tags / links on the right
-- **Markdown notes** — Create and edit Markdown notes with a full formatting toolbar
-- **Folders** — Organize notes in nested folder structures
-- **Attachments** — Attach files to notes or folders
-- **Tags** — Use `#tags` in notes or YAML frontmatter
-- **Diary** — Daily journal entries organized by year
-- **Contacts** — Manage contacts with email, phone, company, and notes
-- **Calendar** — Built-in calendar with events
-- **PDF export** — Export notes as PDF documents
-- **Local-first** — Your data is stored as files in your vault directory
-- **Cloud vaults** — Use vaults stored locally or in supported cloud storage
+### Search
+- **Vault-wide search** — a persistent search bar and a global `Cmd/Ctrl+K` command palette, both searching notes, diary entries, contacts, calendar events, and tags in one place
+- Results are grouped by type and jump straight to the right note, entry, contact, or event
+
+### Notes & editing
+- **Markdown notes** with a full formatting toolbar — headings, bold/italic/strikethrough, inline code and code blocks, blockquotes, bullet/numbered/task lists, links, images, tables, and horizontal rules
+- **Live preview editing** — markdown syntax renders inline as you type and reveals itself when your cursor is on that line
+- **Folders** — organize notes in nested folder structures
+- **Attachments** — attach files to notes or folders
+- **[[Wikilinks]]** with autocomplete, plus a backlinks/outgoing-links panel for every note and diary entry
+- **PDF export** — export any note as a PDF document
+
+### Organization
+- **Tags** — `#inline` tags or YAML frontmatter, with a filterable tag legend that works across notes, diary, and contacts
+- **Diary** — daily journal entries organized by year, with one-click access to today's entry
+
+### Contacts & calendar
+- **Contacts** — track email, phone, company, and freeform notes per contact
+- **`@mentions`** — mention a contact anywhere in a note; mentions are colored, clickable, and navigable, with a Back button to return to where you were
+- **Calendar** — a built-in calendar for events, where each event can link out to related contacts, notes, and diary entries
+
+### Storage & sync
+- **Local-first** — your data is plain Markdown files in a vault directory you choose; it stays fully accessible outside the app
+- **Cloud vaults** — store your vault locally or in iCloud, Google Drive, OneDrive, or Dropbox
+- **Self-healing vault** — required folders and metadata are quietly reinstated if anything gets deleted externally
+- macOS: the vault folder gets a custom Finder icon, badged like other vault-based apps
 
 ## Architecture
 
@@ -123,18 +139,9 @@ Because Cortex is local-first, your data remains accessible as regular files out
 
 ## Roadmap
 
-Cortex is under active development. Features and priorities may change as the project evolves.
+Cortex is under active development, and priorities may change as the project evolves.
 
-Future improvements may include:
-
-- Improved search
-- Backlinks and wiki links
-- Enhanced tag management
-- Additional calendar functionality
-- Improved cloud-storage support
-- Performance improvements
-- UI/UX improvements
-- Additional export options
+See [ROADMAP.md](ROADMAP.md) for what's currently in progress, planned, and under consideration.
 
 ## Contributing
 
