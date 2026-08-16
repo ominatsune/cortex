@@ -504,6 +504,7 @@ function decorateLine(
     { re: /\*\*\*(.+?)\*\*\*/g, openLen: 3, closeLen: 3, openClass: 'cm-syn-bold', closeClass: 'cm-syn-bold', previewClass: 'cm-lp-bold cm-lp-italic' },
     { re: /\*\*(.+?)\*\*/g, openLen: 2, closeLen: 2, openClass: 'cm-syn-bold', closeClass: 'cm-syn-bold', previewClass: 'cm-lp-bold' },
     { re: /~~(.+?)~~/g, openLen: 2, closeLen: 2, openClass: 'cm-syn-strike', closeClass: 'cm-syn-strike', previewClass: 'cm-lp-strike' },
+    { re: /\+\+(.+?)\+\+/g, openLen: 2, closeLen: 2, openClass: 'cm-syn-underline', closeClass: 'cm-syn-underline', previewClass: 'cm-lp-underline' },
     { re: /`([^`\n]+)`/g, openLen: 1, closeLen: 1, openClass: 'cm-syn-code', closeClass: 'cm-syn-code', previewClass: 'cm-lp-code' },
     { re: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, openLen: 1, closeLen: 1, openClass: 'cm-syn-italic', closeClass: 'cm-syn-italic', previewClass: 'cm-lp-italic' },
   ]

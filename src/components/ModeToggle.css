@@ -14,7 +14,7 @@
   justify-content: center;
   gap: 0;
   padding: 4px 12px;
-  min-width: 52px;
+  width: var(--action-cell-width);
   color: var(--text-muted);
   transition: background 0.12s, color 0.12s;
 }

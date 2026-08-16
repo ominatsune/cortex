@@ -18,8 +18,18 @@ interface MarkdownPreviewProps {
 }
 
 function wikiUrlTransform(url: string): string {
-  if (url.startsWith('wiki://') || url.startsWith('contact://')) return url
+  if (url.startsWith('wiki://') || url.startsWith('contact://') || url.startsWith('underline://')) return url
   return defaultUrlTransform(url)
+}
+
+/** `++text++` -> a markdown link with a custom scheme, the same trick
+ *  preprocessWikiLinks uses — no rehype-raw / custom remark plugin needed,
+ *  and it rides the existing `allowedElements` allowlist inside blockquotes
+ *  for free since `a` is already permitted there. */
+function preprocessUnderline(markdown: string): string {
+  return markdown.replace(/\+\+(.+?)\+\+/g, (_match, text: string) => {
+    return `[${text}](underline://)`
+  })
 }
 
 function preprocessWikiLinks(markdown: string): string {
@@ -116,7 +126,7 @@ export default function MarkdownPreview({
   const segments = useMemo(
     () =>
       splitMarkdownQuoteSegments(
-        preprocessContactMentions(preprocessWikiLinks(content), contactNames)
+        preprocessUnderline(preprocessContactMentions(preprocessWikiLinks(content), contactNames))
       ),
     [content, contactNames]
   )
@@ -155,6 +165,9 @@ export default function MarkdownPreview({
               {children}
             </button>
           )
+        }
+        if (href?.startsWith('underline://')) {
+          return <span className="preview-underline">{children}</span>
         }
         return (
           <a href={href} target="_blank" rel="noreferrer">

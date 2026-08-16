@@ -41,6 +41,7 @@ export interface CalendarEvent {
   contactIds?: string[]
   notePaths?: string[]
   diaryDates?: string[]
+  tags?: string[]
 }
 
 export interface CreateEventInput {
@@ -54,6 +55,7 @@ export interface CreateEventInput {
   contactIds?: string[]
   notePaths?: string[]
   diaryDates?: string[]
+  tags?: string[]
 }
 
 export interface Contact {
@@ -72,4 +74,16 @@ export interface OpenDocument {
   path: string
   name: string
   zone: AppZone
+}
+
+export type SearchResultType = 'note' | 'diary' | 'contact' | 'calendar' | 'tag'
+
+export interface SearchResult {
+  type: SearchResultType
+  /** Vault-relative path; absent for 'tag' results. */
+  path?: string
+  /** Note title / diary date / contact name / event title / '#tagname'. */
+  title: string
+  /** Contact email or company, event date range, or a matched-text snippet. */
+  subtitle?: string
 }

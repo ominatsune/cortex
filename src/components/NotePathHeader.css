@@ -21,25 +21,3 @@
   color: var(--text-primary);
   font-weight: 700;
 }
-
-.center-header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  flex: 1;
-  -webkit-app-region: drag;
-}
-
-.center-header-left .note-path-header {
-  -webkit-app-region: no-drag;
-}
-
-.center-header-left .mode-toggle {
-  flex-shrink: 0;
-  -webkit-app-region: no-drag;
-}
-
-.center-header-left .center-back-btn {
-  -webkit-app-region: no-drag;
-}

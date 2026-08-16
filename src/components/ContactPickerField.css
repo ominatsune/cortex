@@ -1,0 +1,82 @@
+.contact-picker {
+  position: relative;
+}
+
+.contact-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.contact-picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.contact-picker-chip.clickable {
+  cursor: pointer;
+}
+
+.contact-picker-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.7;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.contact-picker-chip button:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.contact-picker-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 2px);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--canvas-shadow);
+  padding: 4px;
+}
+
+.contact-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.contact-picker-option:hover {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.contact-picker-create {
+  color: var(--accent);
+}
+
+.contact-picker-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}

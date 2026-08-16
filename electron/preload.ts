@@ -7,6 +7,7 @@ import type {
   CortexAPI,
   CreateEventInput,
   FileEntry,
+  SearchResult,
   StorageSection,
   TagIndex,
   ThemeMode,
@@ -22,6 +23,7 @@ export type {
   CortexAPI,
   CreateEventInput,
   FileEntry,
+  SearchResult,
   StorageSection,
   TagIndex,
   ThemeMode,
@@ -87,6 +89,9 @@ const cortexAPI: CortexAPI = {
   },
   tags: {
     index: (): Promise<TagIndex[]> => ipcRenderer.invoke('tags:index'),
+  },
+  search: {
+    query: (term: string): Promise<SearchResult[]> => ipcRenderer.invoke('search:query', term),
   },
   calendar: {
     listEvents: (start: string, end: string): Promise<CalendarEvent[]> =>

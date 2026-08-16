@@ -4,8 +4,9 @@ import FileBrowser from './FileBrowser'
 import ContactsList from './ContactsList'
 import TagLegend from './TagLegend'
 import AppLogo from './AppLogo'
+import SearchBar from './SearchBar'
 import { useTheme } from '../context/ThemeContext'
-import type { AppZone, Contact } from '../types'
+import type { AppZone, Contact, SearchResult } from '../types'
 import './LeftPanel.css'
 
 interface LeftPanelProps {
@@ -24,6 +25,7 @@ interface LeftPanelProps {
   onError: (msg: string) => void
   vaultName: string | null
   onCloseVault: () => void
+  onSearchResultSelect: (result: SearchResult) => void
 }
 
 const ZONES: { id: AppZone; label: string; icon: typeof StickyNote }[] = [
@@ -48,6 +50,7 @@ export default function LeftPanel({
   onError,
   vaultName,
   onCloseVault,
+  onSearchResultSelect,
 }: LeftPanelProps) {
   const { theme, toggleTheme } = useTheme()
 
@@ -62,6 +65,8 @@ export default function LeftPanel({
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
       </div>
+
+      <SearchBar onResultSelect={onSearchResultSelect} />
 
       <div className="app-zone">
         <div className="app-zone-label">Application</div>

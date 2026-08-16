@@ -24,6 +24,7 @@ import {
   deleteAttachment,
   indexAllTags,
 } from './storage'
+import { searchVault } from './search'
 import {
   listStoredEvents,
   createStoredEvent,
@@ -95,6 +96,7 @@ function createWindow() {
     height: 900,
     minWidth: 1100,
     minHeight: 650,
+    show: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     backgroundColor: '#1a1a1f',
     icon: appIcon,
@@ -103,6 +105,11 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  })
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.maximize()
+    mainWindow?.show()
   })
 
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -337,6 +344,17 @@ ipcMain.handle('tags:index', async () => {
   requireVault()
   try {
     return await indexAllTags()
+  } catch {
+    return []
+  }
+})
+
+// --- Search ---
+
+ipcMain.handle('search:query', async (_, term: string) => {
+  requireVault()
+  try {
+    return await searchVault(term)
   } catch {
     return []
   }

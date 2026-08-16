@@ -180,7 +180,14 @@ export async function listMarkdownFiles(
       return
     }
     for (const entry of entries) {
-      if (entry.name.startsWith('.')) continue
+      // Dot-prefixed entries are skipped by default (editor/OS/cloud-sync
+      // cruft like .git, .DS_Store, .obsidian) — except .calendar, which is
+      // a real content folder that just happens to be dot-hidden from the
+      // notes browser. A full-vault walk (skipHiddenPaths: false, used by
+      // indexAllTags and search) needs to see inside it; scoped walks still
+      // exclude it via the isHiddenPath check below, same as before.
+      const isCalendarDir = entry.name === VAULT_FOLDERS.CALENDAR
+      if (entry.name.startsWith('.') && !(isCalendarDir && !skipHiddenPaths)) continue
       const fullPath = path.join(currentDir, entry.name)
       if (entry.isDirectory()) {
         await walk(fullPath)

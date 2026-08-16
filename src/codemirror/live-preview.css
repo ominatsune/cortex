@@ -9,6 +9,7 @@
 [data-theme='dark'] .cm-syn-bold { color: var(--ctp-mauve); font-weight: 600; }
 [data-theme='dark'] .cm-syn-italic { color: var(--ctp-pink); font-style: normal; font-weight: 600; }
 [data-theme='dark'] .cm-syn-strike { color: var(--ctp-red); font-weight: 600; }
+[data-theme='dark'] .cm-syn-underline { color: var(--ctp-flamingo); font-weight: 600; }
 [data-theme='dark'] .cm-syn-code { color: var(--ctp-green); font-weight: 600; }
 [data-theme='dark'] .cm-syn-heading { color: var(--ctp-peach); font-weight: 700; }
 [data-theme='dark'] .cm-syn-quote { color: var(--ctp-yellow); font-weight: 600; }
@@ -19,6 +20,7 @@
 [data-theme='light'] .cm-syn-bold { color: var(--ctp-mauve); font-weight: 600; }
 [data-theme='light'] .cm-syn-italic { color: var(--ctp-pink); font-style: normal; font-weight: 600; }
 [data-theme='light'] .cm-syn-strike { color: var(--ctp-red); font-weight: 600; }
+[data-theme='light'] .cm-syn-underline { color: var(--ctp-flamingo); font-weight: 600; }
 [data-theme='light'] .cm-syn-code { color: var(--ctp-green); font-weight: 600; }
 [data-theme='light'] .cm-syn-heading { color: var(--ctp-peach); font-weight: 700; }
 [data-theme='light'] .cm-syn-quote { color: var(--ctp-yellow); font-weight: 600; }
@@ -40,6 +42,7 @@
 .cm-lp-bold { font-weight: 700; }
 .cm-lp-italic { font-style: italic; }
 .cm-lp-strike { text-decoration: line-through; opacity: 0.75; }
+.cm-lp-underline { text-decoration: underline; text-underline-offset: 2px; }
 .cm-lp-code {
   font-family: var(--font-mono);
   background: var(--bg-tertiary);

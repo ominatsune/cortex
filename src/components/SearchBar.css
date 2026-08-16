@@ -1,0 +1,127 @@
+.search-bar {
+  position: relative;
+  padding: 0 12px 10px;
+  -webkit-app-region: no-drag;
+}
+
+.search-bar-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+}
+
+.search-bar-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.search-bar-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  color: var(--text-muted);
+}
+
+.search-bar-clear:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.search-bar-input-row input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.search-bar-dropdown {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: calc(100% - 4px);
+  z-index: 200;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--canvas-shadow);
+  padding: 4px;
+}
+
+.search-bar-group + .search-bar-group {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.search-bar-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 4px 8px 2px;
+}
+
+.search-bar-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.search-bar-item:hover,
+.search-bar-item.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.search-bar-item-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.search-bar-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.search-bar-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-bar-item-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-bar-empty {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}

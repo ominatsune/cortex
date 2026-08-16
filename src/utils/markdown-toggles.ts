@@ -6,6 +6,7 @@ const WRAP_INSERTS: Partial<Record<MarkdownAction, { open: string; close: string
   bold: { open: '**', close: '**' },
   italic: { open: '*', close: '*' },
   strikethrough: { open: '~~', close: '~~' },
+  underline: { open: '++', close: '++' },
   code: { open: '`', close: '`' },
   link: { open: '[', close: ']()' },
   image: { open: '![', close: ']()' },
@@ -109,37 +110,65 @@ export class MarkdownToggleController {
     const cfg = LINE_TOGGLES[action]
     if (!cfg) return
 
-    const line = view.state.doc.lineAt(view.state.selection.main.from)
-    const text = line.text
-    const indent = text.match(/^(\s*)/)?.[1] ?? ''
-    const hasPrefix = cfg.strip.test(text)
-    const cursorOffset = view.state.selection.main.from - line.from
+    const { state } = view
+    const sel = state.selection.main
+    const startLine = state.doc.lineAt(sel.from)
+    const endLine = state.doc.lineAt(sel.to)
 
-    if (hasPrefix) {
-      const m = text.match(cfg.strip)
-      const stripped = m
-        ? m[1] !== undefined
-          ? m[1] + text.slice(m[0].length)
-          : text.slice(m[0].length)
-        : text
-      view.dispatch({
-        changes: { from: line.from, to: line.to, insert: stripped },
-        selection: { anchor: line.from + Math.min(cursorOffset - (text.length - stripped.length), stripped.length) },
-      })
-    } else {
-      const stripped = text
+    const lines = []
+    for (let n = startLine.number; n <= endLine.number; n++) {
+      lines.push(state.doc.line(n))
+    }
+
+    const stripGeneric = (text: string): string =>
+      text
         .replace(/^(\s*)/, '')
         .replace(/^#{1,6}\s*/, '')
         .replace(/^>\s*/, '')
         .replace(/^[-*+]\s*/, '')
         .replace(/^\d+\.\s*/, '')
         .replace(/^- \[[ x]\]\s*/, '')
-      const insert = indent + cfg.prefix + stripped
-      view.dispatch({
-        changes: { from: line.from, to: line.to, insert },
-        selection: { anchor: line.from + indent.length + cfg.prefix.length + Math.min(cursorOffset - indent.length, stripped.length) },
-      })
-    }
+
+    const hasExactPrefix = (text: string, indent: string): boolean =>
+      text.slice(indent.length).startsWith(cfg.prefix)
+
+    // Notion/Google-Docs-style toggle semantics: only treat this as "turn it
+    // off" when every selected line already has exactly this prefix (e.g. all
+    // already H2). Otherwise — nothing selected has it, or lines are at mixed
+    // or different levels — apply this prefix to every line, converting them
+    // all to the same level rather than stripping based on "has *a* heading."
+    const allAlreadyThisPrefix = lines.every((line) => {
+      const indent = line.text.match(/^(\s*)/)?.[1] ?? ''
+      return hasExactPrefix(line.text, indent)
+    })
+
+    const changes = lines.map((line) => {
+      const text = line.text
+      const indent = text.match(/^(\s*)/)?.[1] ?? ''
+      if (allAlreadyThisPrefix) {
+        const m = text.match(cfg.strip)
+        const stripped = m
+          ? m[1] !== undefined
+            ? m[1] + text.slice(m[0].length)
+            : text.slice(m[0].length)
+          : text
+        return { from: line.from, to: line.to, insert: stripped }
+      }
+      const stripped = stripGeneric(text)
+      return { from: line.from, to: line.to, insert: indent + cfg.prefix + stripped }
+    })
+
+    // Map the original selection through the edit so it stays put — clicking
+    // another heading level right after keeps the same lines selected instead
+    // of collapsing to a single cursor.
+    const changeSet = state.changes(changes)
+    const newAnchor = changeSet.mapPos(sel.anchor)
+    const newHead = changeSet.mapPos(sel.head)
+
+    view.dispatch({
+      changes,
+      selection: { anchor: newAnchor, head: newHead },
+    })
 
     view.focus()
     this.notify()
@@ -150,6 +179,7 @@ export const MARKDOWN_KEYBINDS: { key: string; action: MarkdownAction }[] = [
   { key: 'Mod-b', action: 'bold' },
   { key: 'Mod-i', action: 'italic' },
   { key: 'Mod-Shift-x', action: 'strikethrough' },
+  { key: 'Mod-u', action: 'underline' },
   { key: 'Mod-e', action: 'code' },
   { key: 'Mod-k', action: 'link' },
   { key: 'Mod-Shift-h', action: 'h1' },

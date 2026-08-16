@@ -20,7 +20,7 @@ function isPresentContactField(value: string | undefined): value is string {
   return trimmed.length > 0 && trimmed.toLowerCase() !== 'none'
 }
 
-function parseContactFile(raw: string): Contact | null {
+export function parseContactFile(raw: string): Contact | null {
   const stripped = stripFileTypeLine(raw)
   const { meta, body } = parseFrontmatter(stripped)
   if (!meta.id || !meta.name) return null

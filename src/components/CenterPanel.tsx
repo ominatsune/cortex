@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect, type MutableRefObject } from 'react'
-import { FileDown, Paperclip, Check, Hash, Pencil, X, ArrowLeft } from 'lucide-react'
+import { FileDown, Paperclip, Hash } from 'lucide-react'
 import MarkdownEditor, { type MarkdownEditorHandle } from './MarkdownEditor'
 import MarkdownPreview from './MarkdownPreview'
 import MarkdownToolbar from './MarkdownToolbar'
 import ModeToggle from './ModeToggle'
 import TagsPopup from './TagsPopup'
+import ActionRow from './ActionRow'
+import ActionButton from './ActionButton'
+import ConfirmDialog from './ConfirmDialog'
 import { UNTITLED_CONTACT, UNTITLED_NOTE, diaryDateFromPath, isDiaryPath, isValidDiaryDate } from '@cortex/core'
 import { buildPdfHtml } from '../utils/pdf'
 import { attachmentMarkdown } from '../utils/markdown'
@@ -15,7 +18,8 @@ import { stripTagsBlock, withTagsBlock } from '../utils/note-tags'
 import { pathDir } from './FileBrowser'
 import { resolveWikiLinkPath } from '../utils/wiki-links'
 import { resolveContactMentionName } from '../utils/contact-mentions'
-import type { AppZone, EditorMode, Contact } from '../types'
+import CalendarEventView from './CalendarEventView'
+import type { AppZone, CalendarEvent, EditorMode, Contact } from '../types'
 import type { MarkdownAction } from '../utils/markdown'
 import './CenterPanel.css'
 import './NotePathHeader.css'
@@ -45,6 +49,7 @@ interface CenterPanelProps {
   selectedPath: string | null
   selectedName: string | null
   selectedContact: Contact | null
+  selectedEvent?: CalendarEvent | null
   openInEditMode: boolean
   isNewNote?: boolean
   skipFlushRef?: MutableRefObject<boolean>
@@ -55,6 +60,9 @@ interface CenterPanelProps {
   onNoteSaved?: () => void
   onContactUpdated?: (contact: Contact) => void
   onOpenContact?: (contact: Contact) => void
+  onOpenDiaryEntry?: (dateStr: string) => void
+  onCloseDiaryEntry?: (dateStr: string) => void
+  onEventDeleted?: () => void
   onRefresh: () => void
   onError: (msg: string) => void
   vaultName: string | null
@@ -62,13 +70,12 @@ interface CenterPanelProps {
   onContentChange?: (content: string) => void
 }
 
-type ContactMode = 'view' | 'edit'
-
 export default function CenterPanel({
   zone,
   selectedPath,
   selectedName,
   selectedContact,
+  selectedEvent,
   openInEditMode,
   isNewNote = false,
   skipFlushRef,
@@ -79,6 +86,9 @@ export default function CenterPanel({
   onNoteSaved,
   onContactUpdated,
   onOpenContact,
+  onOpenDiaryEntry,
+  onCloseDiaryEntry,
+  onEventDeleted,
   onRefresh,
   onError,
   vaultName,
@@ -92,8 +102,9 @@ export default function CenterPanel({
   const [mode, setMode] = useState<EditorMode>('read')
   const [activeFormatActions, setActiveFormatActions] = useState<MarkdownAction[]>([])
   const [showTagsPopup, setShowTagsPopup] = useState(false)
-  const [contactMode, setContactMode] = useState<ContactMode>('view')
-  const [contactSaved, setContactSaved] = useState(false)
+  const [contactMode, setContactMode] = useState<EditorMode>('read')
+  const [pendingDeleteNote, setPendingDeleteNote] = useState(false)
+  const [pendingDeleteContact, setPendingDeleteContact] = useState(false)
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -116,7 +127,7 @@ export default function CenterPanel({
   const noteTagsRef = useRef(noteTags)
   const contentRef = useRef(content)
   const contactFormRef = useRef(contactForm)
-  const contactModeRef = useRef<ContactMode>('view')
+  const contactModeRef = useRef<EditorMode>('read')
   const selectedContactRef = useRef(selectedContact)
   const loadedContactIdRef = useRef<string | null>(null)
   const newNoteInitPathRef = useRef<string | null>(null)
@@ -397,8 +408,7 @@ export default function CenterPanel({
       notes: selectedContact.notes ?? '',
       tags: selectedContact.tags.join(', '),
     })
-    setContactMode(isNew ? 'edit' : 'view')
-    setContactSaved(false)
+    setContactMode(isNew ? 'edit' : 'read')
   }, [selectedContact])
 
   useEffect(() => {
@@ -597,14 +607,34 @@ export default function CenterPanel({
     }
   }
 
-  const handleSaveContact = async () => {
+  const confirmDeleteNote = async () => {
+    setPendingDeleteNote(false)
+    const path = selectedPath
+    if (!path) return
+    const isDiary = isDiaryPath(path)
+    try {
+      if (isDiary) {
+        const dateStr = diaryDateFromPath(path)
+        if (dateStr) onCloseDiaryEntry?.(dateStr)
+      } else {
+        onCloseFile?.()
+      }
+      await window.cortex.storage.deleteFile(path)
+      onRefresh()
+    } catch {
+      onError(`Failed to delete ${isDiary ? 'diary entry' : 'note'}`)
+    }
+  }
+
+  const confirmDeleteContact = async () => {
+    setPendingDeleteContact(false)
     if (!selectedContact) return
-    if (contactSaveTimer.current) clearTimeout(contactSaveTimer.current)
-    const updated = await saveContact(contactForm)
-    if (updated) {
-      setContactMode('view')
-      setContactSaved(true)
-      setTimeout(() => setContactSaved(false), 2500)
+    try {
+      await window.cortex.contacts.delete(selectedContact.id)
+      onCloseFile?.()
+      onRefresh()
+    } catch {
+      onError('Failed to delete contact')
     }
   }
 
@@ -648,10 +678,28 @@ export default function CenterPanel({
     void saveContact(next)
   }
 
+  if (selectedEvent) {
+    return (
+      <CalendarEventView
+        event={selectedEvent}
+        canGoBack={canGoBack}
+        onNavBack={onNavBack}
+        onClose={onCloseFile}
+        onOpenContact={onOpenContact ?? (() => {})}
+        onOpenNote={onOpenNote ?? (() => {})}
+        onOpenDiaryEntry={onOpenDiaryEntry ?? (() => {})}
+        onError={onError}
+        onRefresh={onRefresh}
+        onEventDeleted={onEventDeleted ?? (() => {})}
+      />
+    )
+  }
+
   if (zone === 'contacts') {
     if (!selectedContact) {
       return (
         <main className="center-panel">
+          <ActionRow />
           <div className="empty-state">
             <AppLogo variant="mark" size="xxxl" className="empty-state-logo" />
             <p>Select or create a contact</p>
@@ -662,56 +710,26 @@ export default function CenterPanel({
 
     return (
       <main className="center-panel">
-        <div className="center-header">
-          <div className="center-header-left">
-            <span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>
-            {canGoBack && onNavBack && (
-              <button type="button" className="center-back-btn" onClick={onNavBack}>
-                <ArrowLeft size={14} />
-                Back
-              </button>
-            )}
-          </div>
-          <div className="center-actions">
-            {onCloseFile && (
-              <button className="toolbar-btn" onClick={onCloseFile} title="Close file">
-                <X size={14} />
-              </button>
-            )}
-            {contactSaved && (
-              <span className="save-indicator">
-                <Check size={14} /> Saved
+        <ActionRow
+          left={<span className="center-title">{contactForm.name.trim() || UNTITLED_CONTACT}</span>}
+          center={
+            <>
+              <ActionButton main="GO" sub="BACK" disabled={!canGoBack} onClick={() => onNavBack?.()} />
+              <ModeToggle mode={contactMode} onChange={setContactMode} />
+              <span className="action-row-ghost" aria-hidden="true">
+                <ActionButton main="GO" sub="BACK" disabled onClick={() => {}} />
               </span>
-            )}
-            {contactMode === 'view' ? (
-              <button className="toolbar-btn active" onClick={() => setContactMode('edit')}>
-                <Pencil size={14} /> Edit
-              </button>
-            ) : (
-              <>
-                <button className="toolbar-btn" onClick={() => {
-                  if (contactSaveTimer.current) clearTimeout(contactSaveTimer.current)
-                  setContactForm({
-                    name: selectedContact.name,
-                    email: selectedContact.email ?? '',
-                    phone: selectedContact.phone ?? '',
-                    company: selectedContact.company ?? '',
-                    notes: selectedContact.notes ?? '',
-                    tags: selectedContact.tags.join(', '),
-                  })
-                  setContactMode('view')
-                }}>
-                  Cancel
-                </button>
-                <button className="btn btn-primary contact-save-btn" onClick={handleSaveContact}>
-                  Save
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+            </>
+          }
+          right={
+            <>
+              {onCloseFile && <ActionButton main="CLOSE" sub="CONTACT" onClick={onCloseFile} />}
+              <ActionButton main="DELETE" sub="CONTACT" variant="danger" onClick={() => setPendingDeleteContact(true)} />
+            </>
+          }
+        />
 
-        {contactMode === 'view' ? (
+        {contactMode === 'read' ? (
           <div className="contact-view note-canvas">
             <div className="contact-view-body">
               <h1 className="contact-view-name">{contactForm.name.trim() || UNTITLED_CONTACT}</h1>
@@ -805,6 +823,14 @@ export default function CenterPanel({
             onClose={() => setShowTagsPopup(false)}
           />
         )}
+
+        <ConfirmDialog
+          open={pendingDeleteContact}
+          title="Delete contact"
+          message={`Are you sure you want to delete "${contactForm.name.trim() || UNTITLED_CONTACT}"? This cannot be undone.`}
+          onConfirm={confirmDeleteContact}
+          onCancel={() => setPendingDeleteContact(false)}
+        />
       </main>
     )
   }
@@ -812,6 +838,7 @@ export default function CenterPanel({
   if (!selectedPath) {
     return (
       <main className="center-panel">
+        <ActionRow />
         <div className="empty-state">
           <AppLogo variant="mark" size="xxxl" className="empty-state-logo" />
           <p>{zone === 'diary' ? 'Select a diary entry' : 'Select a note or create a new one'}</p>
@@ -821,50 +848,57 @@ export default function CenterPanel({
   }
 
   const editorSessionReady = editorSessionKey === selectedPath
-  const diaryDate = isDiaryPath(selectedPath) ? diaryDateFromPath(selectedPath) : null
+  const isDiary = isDiaryPath(selectedPath)
+  const diaryDate = isDiary ? diaryDateFromPath(selectedPath) : null
+  const noteNoun = isDiary ? 'PAGE' : 'NOTE'
 
   return (
     <main className="center-panel">
-      <div className="center-header">
-        <div className="center-header-left">
+      <ActionRow
+        left={
           <NotePathHeader
             content={content}
             vaultName={vaultName ?? 'Vault'}
             noteRelativePath={selectedPath}
             compact
           />
-          {canGoBack && onNavBack && (
-            <button type="button" className="center-back-btn" onClick={onNavBack}>
-              <ArrowLeft size={14} />
-              Back
-            </button>
-          )}
-          <ModeToggle mode={mode} onChange={handleModeChange} />
-        </div>
-        <div className="center-actions">
-          {onCloseFile && (
-            <button className="toolbar-btn" onClick={onCloseFile} title="Close file">
-              <X size={14} />
-            </button>
-          )}
-          {mode === 'edit' && (
-            <button className="toolbar-btn" onClick={() => setShowTagsPopup(true)} title="Manage tags">
-              <Hash size={14} />
-            </button>
-          )}
-          <button className="toolbar-btn" onClick={handleAddAttachment} title="Attach file">
-            <Paperclip size={14} />
-          </button>
-          <button className="toolbar-btn" onClick={handleExportPdf} title="Export PDF">
-            <FileDown size={14} /> PDF
-          </button>
-        </div>
-      </div>
+        }
+        center={
+          <>
+            <ActionButton main="GO" sub="BACK" disabled={!canGoBack} onClick={() => onNavBack?.()} />
+            <ModeToggle mode={mode} onChange={handleModeChange} />
+            <span className="action-row-ghost" aria-hidden="true">
+              <ActionButton main="GO" sub="BACK" disabled onClick={() => {}} />
+            </span>
+          </>
+        }
+        right={
+          <>
+            {onCloseFile && <ActionButton main="CLOSE" sub={noteNoun} onClick={onCloseFile} />}
+            <ActionButton main="DELETE" sub={noteNoun} variant="danger" onClick={() => setPendingDeleteNote(true)} />
+          </>
+        }
+      />
 
       {mode === 'edit' && (
         <MarkdownToolbar
           activeActions={activeFormatActions}
           onAction={(action) => editorRef.current?.toggleAction(action)}
+          beforeImage={
+            <button className="md-toolbar-btn" onClick={() => setShowTagsPopup(true)} title="Manage tags">
+              <Hash size={15} />
+            </button>
+          }
+          trailingContent={
+            <>
+              <button className="md-toolbar-btn" onClick={handleAddAttachment} title="Attach file">
+                <Paperclip size={15} />
+              </button>
+              <button className="md-toolbar-btn" onClick={handleExportPdf} title="Export PDF">
+                <FileDown size={15} />
+              </button>
+            </>
+          }
         />
       )}
 
@@ -911,6 +945,14 @@ export default function CenterPanel({
           onClose={() => setShowTagsPopup(false)}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingDeleteNote}
+        title={isDiary ? 'Delete diary entry' : 'Delete note'}
+        message={`Are you sure you want to delete "${selectedName ?? 'this'}"? This cannot be undone.`}
+        onConfirm={confirmDeleteNote}
+        onCancel={() => setPendingDeleteNote(false)}
+      />
     </main>
   )
 }

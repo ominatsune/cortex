@@ -4,6 +4,7 @@ import type {
   Contact,
   CreateEventInput,
   FileEntry,
+  SearchResult,
   StorageSection,
   TagIndex,
   TreeNode,
@@ -38,6 +39,10 @@ export interface CortexAttachmentsAPI {
 
 export interface CortexTagsAPI {
   index(): Promise<TagIndex[]>
+}
+
+export interface CortexSearchAPI {
+  query(term: string): Promise<SearchResult[]>
 }
 
 export interface CortexCalendarAPI {
@@ -78,6 +83,7 @@ export interface CortexAPI {
   storage: CortexStorageAPI
   attachments: CortexAttachmentsAPI
   tags: CortexTagsAPI
+  search: CortexSearchAPI
   calendar: CortexCalendarAPI
   contacts: CortexContactsAPI
   export: CortexExportAPI

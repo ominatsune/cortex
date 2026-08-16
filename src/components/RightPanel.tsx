@@ -12,7 +12,6 @@ interface RightPanelProps {
   selectedPath: string | null
   noteContent: string
   onOpenNote: (path: string, name: string) => void
-  onOpenContact?: (contact: Contact) => void
   refreshKey: number
   diaryRefreshKey?: number
   onError: (msg: string) => void
@@ -21,6 +20,8 @@ interface RightPanelProps {
   onClearFocusEvent?: () => void
   onOpenDiaryEntry?: (dateStr: string) => void
   onCloseDiaryEntry?: (dateStr: string) => void
+  onOpenEvent?: (event: CalendarEvent) => void
+  onOpenContact?: (contact: Contact) => void
 }
 
 const FEATURE_TABS: { id: FeatureZone; label: string; icon: typeof Calendar }[] = [
@@ -34,7 +35,6 @@ export default function RightPanel({
   selectedPath,
   noteContent,
   onOpenNote,
-  onOpenContact,
   refreshKey,
   diaryRefreshKey,
   onError,
@@ -43,6 +43,8 @@ export default function RightPanel({
   onClearFocusEvent,
   onOpenDiaryEntry,
   onCloseDiaryEntry,
+  onOpenEvent,
+  onOpenContact,
 }: RightPanelProps) {
   return (
     <aside className="right-panel">
@@ -69,7 +71,7 @@ export default function RightPanel({
             focusEvent={focusEvent}
             onClearFocusEvent={onClearFocusEvent}
             onOpenDiaryEntry={onOpenDiaryEntry}
-            onOpenNote={onOpenNote}
+            onOpenEvent={onOpenEvent}
             onOpenContact={onOpenContact}
             diaryRefreshKey={diaryRefreshKey}
             fileRefreshKey={refreshKey}

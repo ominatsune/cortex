@@ -141,8 +141,8 @@ async function writeVaultMarker(settingsDir: string, vaultName: string): Promise
 
 function resolveBundledIconPath(): string | null {
   const candidates = [
-    path.join(__dirname, '../dist/cortex-icon.png'),
-    path.join(__dirname, '../public/cortex-icon.png'),
+    path.join(__dirname, '../dist/macos-app-icon-dark.png'),
+    path.join(__dirname, '../public/macos-app-icon-dark.png'),
   ]
   return candidates.find((candidate) => existsSync(candidate)) ?? null
 }
@@ -232,8 +232,47 @@ export async function ensureVaultFolders(vaultRoot: string): Promise<void> {
   await createVaultStructure(vaultRoot)
 }
 
+async function looksLikeVault(dir: string): Promise<boolean> {
+  try {
+    await fs.access(path.join(dir, VAULT_FOLDERS.SETTINGS, VAULT_MARKER_FILE))
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Looks one level down for a folder that's already a real vault (has its
+ *  own marker) — the signal that the caller picked a vault's *parent* by
+ *  mistake rather than the vault itself. Not recursive: a vault nested two
+ *  or more levels down wasn't created by this app and isn't worth guessing
+ *  at. */
+async function findNestedVault(dir: string): Promise<string | null> {
+  let entries
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true })
+  } catch {
+    return null
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+    if (await looksLikeVault(path.join(dir, entry.name))) return entry.name
+  }
+  return null
+}
+
 export async function createVaultAt(parentPath: string, vaultName: string): Promise<string> {
   const safeName = vaultName.replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'Cortex Vault'
+
+  // A parent folder that already shares the vault's name is almost always
+  // an accidental self-nest (picking the vault-to-be's own location, then
+  // naming the new vault the same thing) rather than intentional — refuse
+  // it instead of silently creating {name}/{name}.
+  if (path.basename(parentPath).toLowerCase() === safeName.toLowerCase()) {
+    throw new Error(
+      `Creating "${safeName}" here would nest it inside a folder of the same name. Choose the parent of "${path.basename(parentPath)}" instead, or pick a different vault name.`
+    )
+  }
+
   const vaultRoot = path.join(parentPath, safeName)
   try {
     await fs.mkdir(vaultRoot, { recursive: false })
@@ -248,6 +287,20 @@ export async function createVaultAt(parentPath: string, vaultName: string): Prom
 export async function openVaultAt(vaultRoot: string): Promise<void> {
   const stat = await fs.stat(vaultRoot)
   if (!stat.isDirectory()) throw new Error('Selected path is not a directory')
+
+  // If this folder isn't already a vault itself, but one level down there's
+  // a folder that is, the user almost certainly meant to open that one —
+  // silently scaffolding a brand new vault here would bury their real vault
+  // one level deeper (see the 2026-08-16 incident).
+  if (!(await looksLikeVault(vaultRoot))) {
+    const nested = await findNestedVault(vaultRoot)
+    if (nested) {
+      throw new Error(
+        `"${path.basename(vaultRoot)}" isn't a vault itself, but contains one at "${nested}" — open that folder instead.`
+      )
+    }
+  }
+
   await ensureVaultFolders(vaultRoot)
   await setActiveVault(vaultRoot)
 }

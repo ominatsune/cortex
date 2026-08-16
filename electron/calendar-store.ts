@@ -22,7 +22,7 @@ function parseCsv(value: string | undefined): string[] | undefined {
   return items.length > 0 ? items : undefined
 }
 
-function parseEventFile(raw: string): StoredCalendarEvent | null {
+export function parseEventFile(raw: string): StoredCalendarEvent | null {
   const stripped = stripFileTypeLine(raw)
   const { meta, body } = parseFrontmatter(stripped)
   if (!meta.id || !meta.title || !meta.start || !meta.end) return null
@@ -38,6 +38,7 @@ function parseEventFile(raw: string): StoredCalendarEvent | null {
     contactIds: parseCsv(meta.contactIds),
     notePaths: parseCsv(meta.notePaths),
     diaryDates: parseCsv(meta.diaryDates),
+    tags: parseCsv(meta.tags),
   }
 }
 
@@ -58,6 +59,7 @@ async function writeEventFile(event: StoredCalendarEvent, existingPath?: string)
         contactIds: event.contactIds,
         notePaths: event.notePaths,
         diaryDates: event.diaryDates,
+        tags: event.tags,
       },
       event.notes ?? ''
     )
